@@ -9,6 +9,9 @@ source venv/bin/activate
 
 # install the dependencies
 pip install -r requirements.txt
+
+# Set API key in .env
+cp .env.example .env
 ```
 
 ## Running the game
@@ -16,6 +19,6 @@ pip install -r requirements.txt
 Run this files in separate terminals:
 
 ```python
-python game.py
 python gemini_side.py
+python game.py
 ```
