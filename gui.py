@@ -7,7 +7,8 @@ class RectC:
         self.rect = rect
         self.color = c
 
-
+"""
+Original/old settings:
 MAIN_GRID_BEGIN_CORNER = (330, 19)
 ABOVE_GRID_BEGIN_CORNER = (330, -15)
 HOLD_GRID_BEGIN_CORNER = (210, 19)
@@ -18,6 +19,19 @@ SCORE_BOARD_RECTC = RectC((669, 459, 200, 200), color.LIGHT_GRAY)
 INFO_BOARD_RECTC = RectC((110, 459, 200, 200), color.LIGHT_GRAY)
 
 WIN_SIZE = (1000, 700)
+"""
+
+# New settings:
+MAIN_GRID_BEGIN_CORNER = (330, 200)
+ABOVE_GRID_BEGIN_CORNER = (330, -5)
+HOLD_GRID_BEGIN_CORNER = (2010, 19)
+NEXT_GRID_BEGIN_CORNER = (2019, 19)
+NEXT_GRID_Y_DIFF = 80
+
+SCORE_BOARD_RECTC = RectC((2069, 459, 200, 200), color.LIGHT_GRAY)
+INFO_BOARD_RECTC = RectC((2010, 459, 200, 200), color.LIGHT_GRAY)
+
+WIN_SIZE = (2000, 1400)
 
 pygame.init()
 FONT_SIZE = 16
@@ -35,9 +49,9 @@ class Gui:
         pygame.display.set_caption('tetris_ai')
 
         # setup grids
-        self.main_grid_rectc = Gui.__create_grid_rectc__(MAIN_GRID_BEGIN_CORNER, 32, 2, GAME_BOARD_HEIGHT,
+        self.main_grid_rectc = Gui.__create_grid_rectc__(MAIN_GRID_BEGIN_CORNER, 96, 6, GAME_BOARD_HEIGHT,
                                                          GAME_BOARD_WIDTH)
-        self.above_grid_rectc = Gui.__create_grid_rectc__(ABOVE_GRID_BEGIN_CORNER, 32, 2, 1, GAME_BOARD_WIDTH)
+        self.above_grid_rectc = Gui.__create_grid_rectc__(ABOVE_GRID_BEGIN_CORNER, 96, 6, 1, GAME_BOARD_WIDTH)
         self.hold_grid_rectc = Gui.__create_grid_rectc__(HOLD_GRID_BEGIN_CORNER, 25, 1, 3, 4)
         self.next_grid_rectc = list()
         for i in range(5):
@@ -142,7 +156,7 @@ class Gui:
         i = 0
         for line in lines:
             text = FONT.render(line, True, color.BLACK)
-            self.win.blit(text, (671, 461 + i * FONT_SIZE))
+            self.win.blit(text, (2071, 461 + i * FONT_SIZE))
             i += 1
 
         # info text
@@ -151,7 +165,7 @@ class Gui:
         i = 0
         for line in lines:
             text = FONT.render(line, True, color.BLACK)
-            self.win.blit(text, (112, 461 + i * FONT_SIZE))
+            self.win.blit(text, (2012, 461 + i * FONT_SIZE))
             i += 1
 
     def set_score_text(self, score_text):

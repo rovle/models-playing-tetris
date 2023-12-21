@@ -695,6 +695,10 @@ class Game:
         self.gui.set_info_text(gamestate.get_info_text())
 
     def run(self):
+        screen_x = 255
+        screen_y = 130
+        screen_width = 1110
+        screen_height = 1110
         is_run = True
         state_counter = 0
 
@@ -704,7 +708,7 @@ class Game:
                 self.gui.redraw()
 
             if state_counter == 0:
-                capture_area = pygame.Rect(320, 10, 340, 340)
+                capture_area = pygame.Rect(screen_x, screen_y, screen_width, screen_height)
                 screen_surface = pygame.display.get_surface()
                 subsurface = screen_surface.subsurface(capture_area)
                 #screen_surface = pygame.display.get_surface()
@@ -717,7 +721,7 @@ class Game:
                 self.act(action)
                 self.update_gui()
                 self.gui.redraw()
-                capture_area = pygame.Rect(320, 10, 340, 340)
+                capture_area = pygame.Rect(screen_x, screen_y, screen_width, screen_height)
                 screen_surface = pygame.display.get_surface()
                 subsurface = screen_surface.subsurface(capture_area)
                 pygame.image.save(subsurface, f"screens/screenshot_{state_counter}.png")
