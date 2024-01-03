@@ -25,44 +25,93 @@ genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-pro-vision")
 
 
-def get_gemini_response(image_path=None):
-    if args.manual:
-        response = input("Just for testing, tell me... ")
-        return response
+def generate_ai_response(image_path):
+    prompt = 'Imagine you are a Tetris player with superhuman abilities. You have the power to see 5 moves ahead and can instantly calculate the best possible move for any given board state. You also have perfect hand-eye coordination and can execute any move with precision.\n\nI am presenting you with an image of a Tetris board at its current state. The board is represented by a grid of 10 columns and 10 rows. The empty cells are grey while the Tetrominoes are represented by red color. The possible moves are:\n\nLeft: "left"\nRight: "right"\nDown: "down"\nDrop: "drop"\nRotate clockwise: "turn right"5\nRotate counterclockwise: "turn left"\n\nThe game starts with a random Tetromino falling from the top of the board. You can move the falling Tetromino left or right, and also rotate it clockwise or counterclockwise. You can also drop the Tetromino immediately to the bottom.\n\nWhen a complete row of blocks is formed, it disappears and the blocks above it fall down. Points are scored for each row that is cleared. The game ends when the blocks reach the top of the board.\n\nYour goal is to play Tetris and achieve the highest possible score by maximizing cleared lines and minimizing block gaps. Let\'s think step by step:\n1. Analyze the board, the position of the current blocks and where the current tetromino would best slot in.\n2. Rank the possible moves considering the current state of the board. Prioritize moves that achieve line clears, then prioritize filling gaps. Lastly, consider immediate dropping to keep the game flowing.\n3. Choose the best move based on the analysis. Do not chose a move before doing all the steps to make sure you have the best possible move.\n\nStructure your response as a JSON, so as {"board_state", BOARD_STATE, "tetromino": TETROMINO, "explanation": EXPLANATION, "action": ACTION} where BOARD_STATE is the current state of the board described in 1-3 sentences, TETROMINO is the type of the falling tetromino (I, J, L, O, S, T, Z), EXPLANATION is your reasoning behind the move and ACTION is the string representing the chosen move. Do not add any more keys to the JSON. Your response should start with { and end with }.\n\n'
 
-    prompt = 'Imagine you are a Tetris player with superhuman abilities. You have the power to see 5 moves ahead and can instantly calculate the best possible move for any given board state. You also have perfect hand-eye coordination and can execute any move with precision.\n\nI am presenting you with an image of a Tetris board at its current state. The board is represented by a grid of 10 columns and 10 rows. The empty cells are grey while the Tetrominoes are represented by red color. The possible moves are:\n\nLeft: "left"\nRight: "right"\nDown: "down"\nDrop: "drop"\nRotate clockwise: "turn right"5\nRotate counterclockwise: "turn left"\n\nThe game starts with a random Tetromino falling from the top of the board. You can move the falling Tetromino left or right, and also rotate it clockwise or counterclockwise. You can also drop the Tetromino immediately to the bottom.\n\nWhen a complete row of blocks is formed, it disappears and the blocks above it fall down. Points are scored for each row that is cleared. The game ends when the blocks reach the top of the board.\n\nYour goal is to play Tetris and achieve the highest possible score by maximizing cleared lines and minimizing block gaps. Let\'s think step by step:\n1. Analyze the board, the position of the current blocks and where the current tetromino would best slot in.\n2. Rank the possible moves considering the current state of the board. Prioritize moves that achieve line clears, then prioritize filling gaps. Lastly, consider immediate dropping to keep the game flowing.\n3. Choose the best move based on the analysis. Do not chose a move before doing all the steps to make sure you have the best possible move.\n\nStructure your response as a JSON, so as {"board_state", BOARD_STATE, "tetromino": TETROMINO, "explanation": EXPLANATION, "action": ACTION} where BOARD_STATE is the current state of the board described in 1-3 sentences, TETROMINO is the type of the falling tetromino (I, J, L, O, S, T, Z), EXPLANATION is your reasoning behind the move and ACTION is the string representing the chosen move. Do not add any more keys to the JSON. Your response should start with { and end with }.'
+    example_img_1 = PIL.Image.open("assets/images/example_1.png")
+    example_1_response = '{"board_state": "The board is empty.", "tetromino": "L", "explanation": "The best option is to move the L tetromino to the right 3 times to reach the side of the board and then drop it. This will make it easier to clear a line in the following moves.", "action": "right"}\n\n'
+
+    example_img_2 = PIL.Image.open("assets/images/example_2.png")
+    example_2_response = '{"board_state": "The board has 2 red tetrominoes at the bottom: an L tetromino on the left and a Z tetromino on the right, separated by one column.", "tetromino": "L", "explanation": "In order to clear a line in the following moves, it would be best to rotate the L tetromino clockwise. It can then be moved to the left 5 times and dropped to fit in the 2-column gap at the bottom-left corner of the board.", "action": "turn right"}\n\n'
+
+    example_img_3 = PIL.Image.open("assets/images/example_3.png")
+    example_3_response = '{"board_state": "At the bottom center of the board lies a stack of two red tetrominoes. The bottom piece is an I tetromino, with an O tetromino resting directly above it.", "tetromino": "L", "explanation": "In order to easily clear a line in the following moves, it would be best to move the L tetromino left. It can then be moved left again and dropped to fill the bottom-left side of the board.", "action": "turn right"}\n\n'
+
+    example_img_4 = PIL.Image.open("assets/images/example_4.png")
+    example_4_response = '{"board_state": "At the bottom left of the board lies a stack of two red L tetrominoes. There are 5 empty cells on the right side of the bottom row of the board.", "tetromino": "I", "explanation": "In order to easily clear a line in the following moves, it would be best to move the L tetromino right. It can then be moved right again 2 times, then down to the bottom row and finally one left to fill the space at the bottom center between the 2 tetrominoes.", "action": "turn right"}\n\n'
+
+    example_img_5 = PIL.Image.open("assets/images/example_5.png")
+    example_5_response = '{"board_state": "There is a tall stack of red blocks at the right of the board, 7 rows high. The right-most column and the first 4 columns to the lef are empty.", "tetromino": "T", "explanation": "The best move would be best to move the T tetromino right. In the next moves, it can be moved to the right wall and then rotated counterclockwise to fit the gaps at the bottom.", "action": "right"}\n\n'
 
     img = PIL.Image.open(image_path)
+
     response = model.generate_content(
-        contents=[img, prompt],
+        contents=[
+            prompt,
+            example_img_1,
+            example_1_response,
+            example_img_2,
+            example_2_response,
+            example_img_3,
+            example_3_response,
+            example_img_4,
+            example_4_response,
+            example_img_5,
+            example_5_response,
+            img,
+        ],
         generation_config=genai.types.GenerationConfig(
             # max_output_tokens=500,
-            temperature=0.2,
+            temperature=0.4,
         ),
         stream=False,
     )
 
-    text = response.text
-    print(text, "\n")
-    stripped_text = text[text.index("{") : (text.index("}") + 1)]
+    return response.text
+
+
+def parse_ai_response(response_text):
+    print(response_text, "\n")
+    stripped_text = response_text[
+        response_text.index("{") : (response_text.index("}") + 1)
+    ]
     json = eval(stripped_text)
     return json["action"]
 
 
-if os.path.exists("screens"):
-    shutil.rmtree("screens")
-os.mkdir("screens")
+def get_user_input():
+    response = input("Just for testing, tell me... ")
+    return response
 
-if os.path.exists("actions"):
-    shutil.rmtree("actions")
-os.mkdir("actions")
 
-state_counter = 1
+def get_gemini_response(image_path=None):
+    if args.manual:
+        return get_user_input()
 
-while True:
-    time.sleep(1)
-    image_path = f"screens/screenshot_{state_counter-1}.png"
-    action = get_gemini_response(image_path=image_path)
-    with open(f"actions/action_{state_counter}", "w") as fp:
-        fp.write(action)
-    state_counter += 1
+    response_text = generate_ai_response(image_path)
+    action = parse_ai_response(response_text)
+    return action
+
+
+def main():
+    if os.path.exists("screens"):
+        shutil.rmtree("screens")
+    os.mkdir("screens")
+
+    if os.path.exists("actions"):
+        shutil.rmtree("actions")
+    os.mkdir("actions")
+
+    state_counter = 1
+
+    while True:
+        time.sleep(1)
+        image_path = f"screens/screenshot_{state_counter-1}.png"
+        action = get_gemini_response(image_path=image_path)
+        with open(f"actions/action_{state_counter}", "w") as fp:
+            fp.write(action)
+        state_counter += 1
+
+
+if __name__ == "__main__":
+    main()
