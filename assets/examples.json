@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1",
+    "image_path": "assets/images/example_1.png",
+    "board_state": "The board is empty.",
+    "tetromino": "Z",
+    "explanation": "With an empty board, you have the most flexibility in placing the Z tetromino. You can drop it anywhere without affecting existing lines.",
+    "action": "drop"
+  },
+  {
+    "id": "2",
+    "image_path": "assets/images/example_2.png",
+    "board_state": "The board has a T tetromino on the bottom center.",
+    "tetromino": "I",
+    "explanation": "Since there are 4 empty spaces on the left side of the bottom row, moving the I tetromino left will allow you to reach the edge of the board and potentially clear the line in the next few moves.",
+    "action": "left"
+  },
+  {
+    "id": "3",
+    "image_path": "assets/images/example_3.png",
+    "board_state": "The board is filled with 3 tetrominoes on the bottom right side. The rightmost column, the 3rd column from the right, and the first 4 columns from the left are all empty.",
+    "tetromino": "J",
+    "explanation": "Dropping the J tetromino would be the best move to fill the empty space to the left of the T tetromino and potentially clear a line.",
+    "action": "drop"
+  },
+  {
+    "id": "4",
+    "image_path": "assets/images/example_4.png",
+    "board_state": "The board has a yellow square tetromino on the bottom center and blue I tetromino lying on its side to the right of it. The left side of the board is empty.",
+    "tetromino": "O",
+    "explanation": "To clear a line efficiently, it's best to move the yellow square tetromino left. Since the left side of the board is empty, this allows you to potentially drop it later and fill two bottom cells, setting you up for a line clear.",
+    "action": "left"
+  },
+  {
+    "id": "5",
+    "image_path": "assets/images/example_5.png",
+    "board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty.",
+    "tetromino": "L",
+    "explanation": "The current game strategy hasn't been ideal. It's generally better to fill the corners of the board to prevent blocks from stacking up too high in one area. In this case, the best move would be to move the L tetromino to the right, all the way against the wall, and then carefully lower it to fill any gaps in the bottom row. This will start to create a more even foundation for future blocks.",
+    "action": "right"
+  }
+]

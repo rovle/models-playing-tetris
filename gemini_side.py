@@ -17,6 +17,7 @@ import PIL.Image
 from dotenv import load_dotenv
 import argparse
 from datetime import datetime
+import json
 
 load_dotenv()
 
@@ -29,40 +30,40 @@ model = genai.GenerativeModel("gemini-pro-vision")
 current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
-def generate_ai_response(image_path):
-    prompt = 'Imagine you are a Tetris player with superhuman abilities. You have the power to see 5 moves ahead and can instantly calculate the best possible move for any given board state. You also have perfect hand-eye coordination and can execute any move with precision.\n\nI am presenting you with an image of a Tetris board at its current state. The board is represented by a grid of 10 columns and 20 rows. The empty cells are grey while the Tetrominoes are represented by red color. The possible moves are:\n\nLeft: "left"\nRight: "right"\nDown: "down"\nDrop: "drop"\nRotate clockwise: "turn right"5\nRotate counterclockwise: "turn left"\n\nThe game starts with a random Tetromino falling from the top of the board. You can move the falling Tetromino left or right, and also rotate it clockwise or counterclockwise. You can also drop the Tetromino immediately to the bottom.\n\nWhen a complete row of blocks is formed, it disappears and the blocks above it fall down. Points are scored for each row that is cleared. The game ends when the blocks reach the top of the board.\n\nYour goal is to play Tetris and achieve the highest possible score by maximizing cleared lines and minimizing block gaps. Let\'s think step by step:\n1. Analyze the board, the position of the current blocks and where the current tetromino would best slot in.\n2. Rank the possible moves considering the current state of the board. Prioritize moves that achieve line clears, then prioritize filling gaps. Lastly, consider immediate dropping to keep the game flowing.\n3. Choose the best move based on the analysis. Do not chose a move before doing all the steps to make sure you have the best possible move.\n\nStructure your response as a JSON, so as {"board_state", BOARD_STATE, "tetromino": TETROMINO, "explanation": EXPLANATION, "action": ACTION} where BOARD_STATE is the current state of the board described in 1-3 sentences, TETROMINO is the type of the falling tetromino (I, J, L, O, S, T, Z), EXPLANATION is your reasoning behind the move and ACTION is the string representing the chosen move. Do not add any more keys to the JSON. Your response should start with { and end with }.\n\n'
+def generate_ai_response(prompt_name, example_ids, image_path):
+    with open("assets/prompts.json", "r") as prompt_file:
+        prompts = json.load(prompt_file)
+    with open("assets/examples.json", "r") as example_file:
+        examples = json.load(example_file)
 
-    example_img_1 = PIL.Image.open("assets/images/example_1.png")
-    example_1_response = '{"board_state": "The board is empty.", "tetromino": "Z", "explanation": "With an empty board, you have the most flexibility in placing the Z tetromino. You can drop it anywhere without affecting existing lines.", "action": "drop"}\n\n'
+    prompt = prompts.get(prompt_name, {})
+    instructions = prompt.get("instructions", None)
+    tetrominoes_color = prompt.get("tetrominoes_color", None)
+    agumentation = prompt.get("agumentation", None)
 
-    example_img_2 = PIL.Image.open("assets/images/example_2.png")
-    example_2_response = '{"board_state": "The board has a T tetromino on the bottom center.", "tetromino": "I", "explanation": "Since there are 4 empty spaces on the left side of the bottom row, moving the I tetromino left will allow you to reach the edge of the board and potentially clear the line in the next few moves.", "action": "left"}\n\n'
+    example_responses = []
+    example_imgs = []
+    for example in examples:
+        if example["id"] in example_ids:
+            example_responses.append({
+                "board_state": example["board_state"],
+                "tetromino": example["tetromino"],
+                "explanation": example["explanation"],
+                "action": example["action"],
+            })
+            example_imgs.append(PIL.Image.open(example["image_path"]))
 
-    example_img_3 = PIL.Image.open("assets/images/example_3.png")
-    example_3_response = '{"board_state": "The board is filled with 3 tetrominoes on the bottom right side. The rightmost column, the 3rd column from the right, and the first 4 columns from the left are all empty.", "tetromino": "J", "explanation": "Dropping the J tetromino would be the best move to fill the empty space to the left of the T tetromino and potentially clear a line.", "action": "drop"}\n\n'
-
-    example_img_4 = PIL.Image.open("assets/images/example_4.png")
-    example_4_response = '{"board_state": "The board has a yellow square tetromino on the bottom center and blue I tetromino lying on its side to the right of it. The left side of the board is empty.", "tetromino": "O", "explanation": "To clear a line efficiently, it\'s best to move the yellow square tetromino left. Since the left side of the board is empty, this allows you to potentially drop it later and fill two bottom cells, setting you up for a line clear.", "action": "left"}\n\n'
-
-    example_img_5 = PIL.Image.open("assets/images/example_5.png")
-    example_5_response = '{"board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty.", "tetromino": "L", "explanation": "The current game strategy hasn\'t been ideal. It\'s generally better to fill the corners of the board to prevent blocks from stacking up too high in one area. In this case, the best move would be to move the L tetromino to the right, all the way against the wall, and then carefully lower it to fill any gaps in the bottom row. This will start to create a more even foundation for future blocks.", "action": "right"}\n\n'
-
-    img = PIL.Image.open(image_path)
+    current_board_img = PIL.Image.open(image_path)
 
     response = model.generate_content(
         contents=[
-            prompt,
-            example_img_1,
-            example_1_response,
-            example_img_2,
-            example_2_response,
-            example_img_3,
-            example_3_response,
-            example_img_4,
-            example_4_response,
-            example_img_5,
-            example_5_response,
-            img,
+            instructions,
+            *[
+                img_response
+                for pair in zip(example_imgs, example_responses)
+                for img_response in pair
+            ],
+            current_board_img,
         ],
         generation_config=genai.types.GenerationConfig(
             # max_output_tokens=500,
@@ -94,14 +95,14 @@ def get_user_input():
     return response
 
 
-def get_gemini_response(image_path=None):
+def get_gemini_response(prompt_name, example_ids, image_path=None):
     if args.manual:
         return get_user_input()
 
     retry_count = 0
     while retry_count < 50:
         try:
-            response_text = generate_ai_response(image_path)
+            response_text = generate_ai_response(prompt_name, example_ids, image_path)
             break
         except InternalServerError:
             retry_count += 1
@@ -178,11 +179,18 @@ def main():
 
     state_counter = 1
 
-    input("Press Enter when you have started the game...")
+    prompt_name = input(
+        "Please start the game. Then enter the name of the prompt you want to use: "
+    )
+    example_ids = input(
+        "Enter the IDs of the examples you want to use separated by commas: "
+    )
+    example_ids = example_ids.split(",")
+
     while True:
         time.sleep(1)
         image_path = f"screens/screenshot_{state_counter-1}.png"
-        action = get_gemini_response(image_path=image_path)
+        action = get_gemini_response(prompt_name, example_ids, image_path=image_path)
         with open(f"actions/action_{state_counter}", "w") as fp:
             fp.write(action)
         while True:
