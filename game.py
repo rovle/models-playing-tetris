@@ -602,9 +602,11 @@ class Game:
         self.state_counter = 0
 
     def act(self, action):
+        with open("new_game.txt", "w") as fp:
+            fp.write(f"{self.state_counter},0")
         if self.current_state.game_status == "gameover":
             with open("new_game.txt", "w") as fp:
-                fp.write("1")
+                fp.write(f"{self.state_counter},1")
             with open("pieces_count.txt", "w") as fp:
                 fp.write(str(self.current_state.pieces))
             self.state_counter = 0

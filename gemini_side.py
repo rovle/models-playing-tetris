@@ -161,10 +161,14 @@ def main():
         action = get_gemini_response(image_path=image_path)
         with open(f"actions/action_{state_counter}", "w") as fp:
             fp.write(action)
+        while True:
+            time.sleep(0.1)
+            with open("new_game.txt", "r") as fp:
+                new_game = fp.read().split(",")
+            if new_game[0] == str(state_counter):
+                break
         state_counter += 1
-        with open("new_game.txt", "r") as fp:
-            new_game = fp.read()
-        if new_game == "1":
+        if new_game[1] == "1":
             # move actions, screens and responses folders to game_number folder
             os.mkdir(f"previous_games/game_{game_number}")
             shutil.move("actions", f"previous_games/game_{game_number}/actions")
@@ -179,7 +183,7 @@ def main():
             game_number += 1
 
             with open("new_game.txt", "w") as fp:
-                fp.write("0")
+                fp.write("0,0")
             with open("finished_restart.txt", "w") as fp:
                 fp.write("1")
 
