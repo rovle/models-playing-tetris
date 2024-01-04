@@ -178,7 +178,7 @@ class Tetromino:
         for sq in self.tet:
             new_sq = list(sq)
             new_sq[0] = sq[0] + self.center_x
-            new_sq[1] = sq[1] + self.center_y
+            new_sq[1] = sq[1] + self.center_y + 1
             disp.append(new_sq)
         return disp
 

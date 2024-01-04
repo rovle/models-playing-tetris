@@ -602,6 +602,7 @@ class Game:
 
     def act(self, action):
         if self.current_state.game_status == "gameover":
+            exit()
             return self.get_state_input(self.current_state), 0, True, False
 
         success = False
@@ -698,7 +699,7 @@ class Game:
         screen_x = 320
         screen_y = 10
         screen_width = 340
-        screen_height = 660
+        screen_height = 670
         is_run = True
         state_counter = 0
 
@@ -732,6 +733,8 @@ class Game:
                     is_run = False
 
                 if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        self.restart()
                     if event.key == pygame.K_a:
                         self.act("left")
                     if event.key == pygame.K_d:
