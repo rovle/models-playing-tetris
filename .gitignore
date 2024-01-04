@@ -163,3 +163,7 @@ cython_debug/
 screens/*
 actions/*
 responses/*
+
+previous_games/*
+finished_restart.txt
+new_game.txt
