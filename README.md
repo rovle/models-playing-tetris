@@ -22,3 +22,9 @@ Run this files in separate terminals:
 python gemini_side.py
 python game.py
 ```
+
+To save a video of the screenshots:
+
+```bash
+cd screens && ffmpeg -framerate 2 -i screenshot_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p ../tetris.mp4
+```
