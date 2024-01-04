@@ -695,10 +695,10 @@ class Game:
         self.gui.set_info_text(gamestate.get_info_text())
 
     def run(self):
-        screen_x = 255
-        screen_y = 130
-        screen_width = 1110
-        screen_height = 1110
+        screen_x = 320
+        screen_y = 10
+        screen_width = 340
+        screen_height = 660
         is_run = True
         state_counter = 0
 

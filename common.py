@@ -1,5 +1,5 @@
 GAME_BOARD_WIDTH = 10
-GAME_BOARD_HEIGHT = 10
+GAME_BOARD_HEIGHT = 20
 
 STATE_INPUT = 'short'       # 'short', 'long', 'dense'
 SEARCH = True
