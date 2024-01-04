@@ -599,10 +599,21 @@ class Game:
         self.current_state = Gamestate(seed=seed, height=height)
         self.all_possible_states = []
         self.height = height
+        self.state_counter = 0
 
     def act(self, action):
         if self.current_state.game_status == "gameover":
-            exit()
+            with open("new_game.txt", "w") as fp:
+                fp.write("1")
+            self.state_counter = 0
+            self.restart()
+            while True:
+                with open("finished_restart.txt", "r") as fp:
+                    if fp.read() == "1":
+                        break
+                time.sleep(0.1)
+            with open("finished_restart.txt", "w") as fp:
+                fp.write("0")
             return self.get_state_input(self.current_state), 0, True, False
 
         success = False
@@ -701,23 +712,23 @@ class Game:
         screen_width = 340
         screen_height = 670
         is_run = True
-        state_counter = 0
 
         while is_run:
             if self.gui is not None:
                 self.update_gui()
                 self.gui.redraw()
 
-            if state_counter == 0:
+            if self.state_counter == 0:
                 capture_area = pygame.Rect(screen_x, screen_y, screen_width, screen_height)
                 screen_surface = pygame.display.get_surface()
                 subsurface = screen_surface.subsurface(capture_area)
                 #screen_surface = pygame.display.get_surface()
-                pygame.image.save(subsurface, f"screens/screenshot_{state_counter}.png")
-                state_counter += 1
+                pygame.image.save(subsurface, f"screens/screenshot_{self.state_counter}.png")
+                self.state_counter += 1
+                self.is_reset = False
             # here goes the file reading stuff--
-            if os.path.exists(f"actions/action_{state_counter}"):
-                with open(f"actions/action_{state_counter}") as f:
+            if os.path.exists(f"actions/action_{self.state_counter}"):
+                with open(f"actions/action_{self.state_counter}") as f:
                     action = f.readline()
                 self.act(action)
                 self.update_gui()
@@ -725,16 +736,14 @@ class Game:
                 capture_area = pygame.Rect(screen_x, screen_y, screen_width, screen_height)
                 screen_surface = pygame.display.get_surface()
                 subsurface = screen_surface.subsurface(capture_area)
-                pygame.image.save(subsurface, f"screens/screenshot_{state_counter}.png")
-                state_counter += 1
+                pygame.image.save(subsurface, f"screens/screenshot_{self.state_counter}.png")
+                self.state_counter += 1
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     is_run = False
 
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_r:
-                        self.restart()
                     if event.key == pygame.K_a:
                         self.act("left")
                     if event.key == pygame.K_d:

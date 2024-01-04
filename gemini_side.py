@@ -101,7 +101,7 @@ def get_gemini_response(image_path=None):
     return action
 
 
-def main():
+def refresh_folders():
     if os.path.exists("screens"):
         shutil.rmtree("screens")
     os.mkdir("screens")
@@ -110,8 +110,32 @@ def main():
         shutil.rmtree("actions")
     os.mkdir("actions")
 
+    if os.path.exists("responses"):
+        shutil.rmtree("responses")
+    os.mkdir("responses")
+
+def main():
+
+    # read the folder previous_games and get the last game number
+    # then start from last game number + 1
+    # if there is no previous_games folder, start from 1
+    folder_names = os.listdir("previous_games")
+    game_number = 1 + max(
+                            [ int(folder.split("_")[1])
+                            for folder in folder_names ]
+                           )
+
+    refresh_folders()
+
+    with open("new_game.txt", "w") as fp:
+        fp.write("0")
+
+    with open("finished_restart.txt", "w") as fp:
+        fp.write("0")
+
     state_counter = 1
 
+    input("Press Enter when you have started the game...")
     while True:
         time.sleep(1)
         image_path = f"screens/screenshot_{state_counter-1}.png"
@@ -119,6 +143,22 @@ def main():
         with open(f"actions/action_{state_counter}", "w") as fp:
             fp.write(action)
         state_counter += 1
+        with open("new_game.txt", "r") as fp:
+            new_game = fp.read()
+        if new_game == "1":
+            # move actions, screens and responses folders to game_number folder
+            os.mkdir(f"previous_games/game_{game_number}")
+            shutil.move("actions", f"previous_games/game_{game_number}/actions")
+            shutil.move("screens", f"previous_games/game_{game_number}/screens")
+            shutil.move("responses", f"previous_games/game_{game_number}/responses")
+            refresh_folders()
+            state_counter = 1
+            game_number += 1
+
+            with open("new_game.txt", "w") as fp:
+                fp.write("0")
+            with open("finished_restart.txt", "w") as fp:
+                fp.write("1")
 
 
 if __name__ == "__main__":
