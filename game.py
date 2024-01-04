@@ -605,6 +605,8 @@ class Game:
         if self.current_state.game_status == "gameover":
             with open("new_game.txt", "w") as fp:
                 fp.write("1")
+            with open("pieces_count.txt", "w") as fp:
+                fp.write(str(self.current_state.pieces))
             self.state_counter = 0
             self.restart()
             while True:

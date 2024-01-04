@@ -151,6 +151,9 @@ def main():
             shutil.move("actions", f"previous_games/game_{game_number}/actions")
             shutil.move("screens", f"previous_games/game_{game_number}/screens")
             shutil.move("responses", f"previous_games/game_{game_number}/responses")
+            # move the file pieces_count.txt to game_number folder
+            shutil.move("pieces_count.txt",
+                        f"previous_games/game_{game_number}/pieces_count.txt")
             refresh_folders()
             state_counter = 1
             game_number += 1
