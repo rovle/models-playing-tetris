@@ -14,8 +14,8 @@ ORANGE = (255, 200, 0)
 PURPLE = (102, 0, 153)
 PINK = (255, 105, 180)
 
-# colors = [GRAY, RED, GREEN, CYAN, PURPLE, PINK, ORANGE, YELLOW, BLUE, (0, 237, 165), (22, 172, 237)]
-colors = [GRAY, RED, RED, RED, RED, RED, RED, RED, RED, (0, 237, 165), (22, 172, 237)]
+colors = [GRAY, RED, GREEN, CYAN, PURPLE, PINK, ORANGE, YELLOW, BLUE, (0, 237, 165), (22, 172, 237)]
+# colors = [GRAY, RED, RED, RED, RED, RED, RED, RED, RED, (0, 237, 165), (22, 172, 237)]
 cmap = dict()
 for i in range(17):
     if i < len(colors):
