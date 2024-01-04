@@ -12,6 +12,7 @@ import shutil
 import time
 import subprocess
 import google.generativeai as genai
+from google.api_core.exceptions import InternalServerError
 import PIL.Image
 from dotenv import load_dotenv
 import argparse
@@ -97,7 +98,21 @@ def get_gemini_response(image_path=None):
     if args.manual:
         return get_user_input()
 
-    response_text = generate_ai_response(image_path)
+    retry_count = 0
+    while retry_count < 50:
+        try:
+            response_text = generate_ai_response(image_path)
+            break
+        except InternalServerError:
+            retry_count += 1
+            print(f"Internal server erorr {retry_count}/50, retrying...")
+            time.sleep(1)
+            continue
+
+    if retry_count == 50:
+        print("Failed to get a response after 50 retries.")
+        exit()
+
     action = parse_ai_response(response_text)
     return action
 
