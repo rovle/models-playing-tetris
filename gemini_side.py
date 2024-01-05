@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 import argparse
 from datetime import datetime
 import json
+import pdb
 
 load_dotenv()
 
@@ -45,24 +46,29 @@ def generate_ai_response(prompt_name, example_ids, image_path):
     example_imgs = []
     for example in examples:
         if example["id"] in example_ids:
-            example_responses.append({
-                "board_state": example["board_state"],
-                "tetromino": example["tetromino"],
-                "explanation": example["explanation"],
-                "action": example["action"],
-            })
+            example_responses.append(
+                {
+                    "board_state": example["board_state"],
+                    "tetromino": example["tetromino"],
+                    "explanation": example["explanation"],
+                    "action": example["action"],
+                }
+            )
             example_imgs.append(PIL.Image.open(example["image_path"]))
+
+    example_responses = [json.dumps(example) for example in example_responses]
+
+    example_images_and_responses = []
+    for pair in zip(example_imgs, example_responses):
+        for img_response in pair:
+            example_images_and_responses.append(img_response)
 
     current_board_img = PIL.Image.open(image_path)
 
     response = model.generate_content(
         contents=[
             instructions,
-            *[
-                img_response
-                for pair in zip(example_imgs, example_responses)
-                for img_response in pair
-            ],
+            *example_images_and_responses,
             current_board_img,
         ],
         generation_config=genai.types.GenerationConfig(
