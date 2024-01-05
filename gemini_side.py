@@ -28,6 +28,8 @@ args = parser.parse_args()
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-pro-vision")
+TEMPERATURE = 0.4 # we could eventually get this via argumentparser, as well
+                    # as the model and such things :catthinking4K:
 current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
@@ -72,8 +74,7 @@ def generate_ai_response(prompt_name, example_ids, image_path):
             current_board_img,
         ],
         generation_config=genai.types.GenerationConfig(
-            # max_output_tokens=500,
-            temperature=0.4,
+            temperature=TEMPERATURE,
         ),
         stream=False,
     )
@@ -192,6 +193,7 @@ def main():
         "Enter the IDs of the examples you want to use separated by commas: "
     )
     example_ids = example_ids.split(",")
+    example_ids = [example_id.strip() for example_id in example_ids]
 
     while True:
         time.sleep(1)
@@ -212,11 +214,20 @@ def main():
             shutil.move("actions", f"previous_games/game_{game_number}/actions")
             shutil.move("screens", f"previous_games/game_{game_number}/screens")
             shutil.move("responses", f"previous_games/game_{game_number}/responses")
-            # move the file pieces_count.txt to game_number folder
-            shutil.move(
-                "pieces_count.txt",
-                f"previous_games/game_{game_number}/pieces_count.txt",
-            )
+            with open("pieces_count.txt", "r") as fp:
+                pieces_count = int(fp.read())
+
+            information_dict = {
+                "prompt_name": prompt_name,
+                "example_ids": [int(x) for x in example_ids],
+                "pieces_count": pieces_count,
+                "model" : "gemini-pro-vision", # for now ...
+                "temperature": TEMPERATURE
+            }
+            # save as json in game_number folder
+            with open(f"previous_games/game_{game_number}/info.json", "w") as fp:
+                json.dump(information_dict, fp)
+
             refresh_folders()
             create_video(game_number)
             state_counter = 1
