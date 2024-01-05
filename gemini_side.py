@@ -112,7 +112,7 @@ def parse_ai_response(response_text):
 
 
 def get_user_input():
-    response = input("What is your next move (left, right, down, drop, turn right, turn left)? ")
+    response = input("Enter your next move: ")
     return response
 
 
@@ -201,6 +201,10 @@ def main():
     state_counter = 1
 
     input("Start the game and then press Enter...")
+    if args.manual:
+        print(
+            "The possible moves are: left, right, down, drop, turn right and turn left"
+        )
 
     while True:
         time.sleep(1)
