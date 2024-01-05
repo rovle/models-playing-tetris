@@ -1,6 +1,6 @@
 [
   {
-    "id": "1",
+    "id": 1,
     "image_path": "assets/images/example_1.png",
     "board_state": "The board is empty.",
     "tetromino": "Z",
@@ -8,7 +8,7 @@
     "action": "drop"
   },
   {
-    "id": "2",
+    "id": 2,
     "image_path": "assets/images/example_2.png",
     "board_state": "The board has a T tetromino on the bottom center.",
     "tetromino": "I",
@@ -16,7 +16,7 @@
     "action": "left"
   },
   {
-    "id": "3",
+    "id": 3,
     "image_path": "assets/images/example_3.png",
     "board_state": "The board is filled with 3 tetrominoes on the bottom right side. The rightmost column, the 3rd column from the right, and the first 4 columns from the left are all empty.",
     "tetromino": "J",
@@ -24,7 +24,7 @@
     "action": "drop"
   },
   {
-    "id": "4",
+    "id": 4,
     "image_path": "assets/images/example_4.png",
     "board_state": "The board has a yellow square tetromino on the bottom center and blue I tetromino lying on its side to the right of it. The left side of the board is empty.",
     "tetromino": "O",
@@ -32,7 +32,7 @@
     "action": "left"
   },
   {
-    "id": "5",
+    "id": 5,
     "image_path": "assets/images/example_5.png",
     "board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty.",
     "tetromino": "L",

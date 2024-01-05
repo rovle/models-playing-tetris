@@ -24,12 +24,26 @@ load_dotenv()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--manual", help="manual mode", action="store_true")
+parser.add_argument(
+    "--model", help="model name for AI generation", default="gemini-pro-vision"
+)
+parser.add_argument(
+    "--temperature", type=float, help="temperature for AI generation", default=0.4
+)
+parser.add_argument(
+    "--prompt_name", help="name of the prompt for AI generation", default="prompt_1"
+)
+parser.add_argument(
+    "--example_ids",
+    type=int,
+    nargs="*",
+    help="list of IDs of examples to use",
+    default=[],
+)
 args = parser.parse_args()
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-pro-vision")
-TEMPERATURE = 0.4 # we could eventually get this via argumentparser, as well
-                    # as the model and such things :catthinking4K:
+model = genai.GenerativeModel(args.model)
 current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
@@ -74,7 +88,7 @@ def generate_ai_response(prompt_name, example_ids, image_path):
             current_board_img,
         ],
         generation_config=genai.types.GenerationConfig(
-            temperature=TEMPERATURE,
+            temperature=args.temperature,
         ),
         stream=False,
     )
@@ -98,7 +112,7 @@ def parse_ai_response(response_text):
 
 
 def get_user_input():
-    response = input("Just for testing, tell me... ")
+    response = input("What is your next move (left, right, down, drop, turn right, turn left)? ")
     return response
 
 
@@ -186,19 +200,14 @@ def main():
 
     state_counter = 1
 
-    prompt_name = input(
-        "Please start the game. Then enter the name of the prompt you want to use: "
-    )
-    example_ids = input(
-        "Enter the IDs of the examples you want to use separated by commas: "
-    )
-    example_ids = example_ids.split(",")
-    example_ids = [example_id.strip() for example_id in example_ids]
+    input("Start the game and then press Enter...")
 
     while True:
         time.sleep(1)
         image_path = f"screens/screenshot_{state_counter-1}.png"
-        action = get_gemini_response(prompt_name, example_ids, image_path=image_path)
+        action = get_gemini_response(
+            args.prompt_name, args.example_ids, image_path=image_path
+        )
         with open(f"actions/action_{state_counter}", "w") as fp:
             fp.write(action)
         while True:
@@ -218,11 +227,11 @@ def main():
                 pieces_count = int(fp.read())
 
             information_dict = {
-                "prompt_name": prompt_name,
-                "example_ids": [int(x) for x in example_ids],
+                "prompt_name": args.prompt_name,
+                "example_ids": args.example_ids,
                 "pieces_count": pieces_count,
-                "model" : "gemini-pro-vision", # for now ...
-                "temperature": TEMPERATURE
+                "model": args.model,
+                "temperature": args.temperature,
             }
             # save as json in game_number folder
             with open(f"previous_games/game_{game_number}/info.json", "w") as fp:
