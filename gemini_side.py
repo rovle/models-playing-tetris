@@ -11,14 +11,15 @@ import os
 import shutil
 import time
 import subprocess
+import pdb
+import argparse
+import json
+from dotenv import load_dotenv
+from datetime import datetime
 import google.generativeai as genai
 from google.api_core.exceptions import InternalServerError
-import PIL.Image
-from dotenv import load_dotenv
-import argparse
-from datetime import datetime
-import json
-import pdb
+from PIL import Image
+import image_transformation as img_transform
 
 load_dotenv()
 
@@ -55,8 +56,7 @@ def generate_ai_response(prompt_name, example_ids, image_path):
 
     prompt = prompts.get(prompt_name, {})
     instructions = prompt.get("instructions", None)
-    tetrominoes_color = prompt.get("tetrominoes_color", None)
-    agumentation = prompt.get("agumentation", None)
+    augmentation = prompt.get("augmentation", None)
 
     example_responses = []
     example_imgs = []
@@ -70,22 +70,27 @@ def generate_ai_response(prompt_name, example_ids, image_path):
                     "action": example["action"],
                 }
             )
-            example_imgs.append(PIL.Image.open(example["image_path"]))
+            example_imgs.append(Image.open(example["image_path"]))
 
     example_responses = [json.dumps(example) for example in example_responses]
 
     example_images_and_responses = []
     for pair in zip(example_imgs, example_responses):
-        for img_response in pair:
-            example_images_and_responses.append(img_response)
+        example_images_and_responses.extend(pair)
 
-    current_board_img = PIL.Image.open(image_path)
+    current_board_img = Image.open(image_path)
+    if augmentation:
+        current_board_imgs = img_transform.apply_augmentations(
+            image_path, augmentation
+        ) + [current_board_img]
+    else:
+        current_board_imgs = [current_board_img]
 
     response = model.generate_content(
         contents=[
             instructions,
             *example_images_and_responses,
-            current_board_img,
+            *current_board_imgs,
         ],
         generation_config=genai.types.GenerationConfig(
             temperature=args.temperature,

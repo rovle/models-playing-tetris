@@ -11,12 +11,11 @@ image = apply_resize(image, 500, 500)
 image = apply_rotation(image, 10)
 
 Display the augmented image (press Esc to exit):
-cv2.imshow("Augmented Image", image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+show_image(image)
 """
 
 import cv2
+from PIL import Image
 import numpy as np
 import random
 
@@ -123,3 +122,42 @@ def apply_rotation(image, angle):
     rotation_matrix = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1)
     rotated_image = cv2.warpAffine(image, rotation_matrix, (width, height))
     return rotated_image
+
+
+def apply_augmentations(image_path, augmentation_data):
+    image = load_image(image_path)
+
+    augmented_images = []
+    for aug_name, aug_params in augmentation_data.items():
+        if aug_name == "noise":
+            augmented_image = apply_noise(image, **aug_params)
+        elif aug_name == "color":
+            augmented_image = apply_color_transformations(image, **aug_params)
+        elif aug_name == "resize":
+            augmented_image = apply_resize(image, **aug_params)
+        elif aug_name == "rotation":
+            augmented_image = apply_rotation(image, **aug_params)
+        else:
+            continue
+        pil_image = Image.fromarray(cv2.cvtColor(augmented_image, cv2.COLOR_BGR2RGB))
+        augmented_images.append(pil_image)
+
+        # Show the augmented images (press Esc to close the windows)
+        # show_image(augmented_image)
+    return augmented_images
+
+
+def show_image(image):
+    """
+    Displays the given image in a new window.
+    Press Esc to close the window.
+
+    Args:
+        image: The image to be displayed.
+
+    Returns:
+        None
+    """
+    cv2.imshow("Image", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
