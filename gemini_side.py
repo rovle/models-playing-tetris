@@ -22,12 +22,12 @@ from PIL import Image
 import image_transformation as img_transform
 import base64
 import requests
+import random
 
 
 load_dotenv()
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--manual", help="manual mode", action="store_true")
 parser.add_argument(
     "--model", help="model name for AI generation", default="gemini-pro-vision"
 )
@@ -210,9 +210,14 @@ def get_user_input():
 
 
 def get_ai_response(prompt_name, example_ids, image_path=None):
-    if args.manual:
-        return get_user_input()
+    if args.model == "manual":
+        return [get_user_input()]
 
+    if args.model == "random":
+        action = random.choice(
+            ["left", "right", "down", "drop", "turn right", "turn left"]
+        )
+        return [action]
     retry_count = 0
     while retry_count < 50:
         try:
@@ -301,7 +306,7 @@ def main():
     state_counter = 1
 
     input("Start the game and then press Enter...")
-    if args.manual:
+    if args.model == "manual":
         print(
             "The possible moves are: left, right, down, drop, turn right and turn left"
         )
