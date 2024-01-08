@@ -62,7 +62,7 @@ if (
     model = "gpt-4-vision-preview"
 
 
-def generate_ai_response(prompt_name, example_ids, image_path):
+def generate_gemini_response(prompt_name, example_ids, image_path):
     prompt = prompts.get(prompt_name, {})
     instructions = prompt.get("instructions", None)
     augmentation = prompt.get("augmentation", None)
@@ -118,7 +118,6 @@ def encode_image(image_path):
 def generate_gpt4v_response(prompt_name, example_ids, image_path):
     prompt = prompts.get(prompt_name, {})
     instructions = prompt.get("instructions", None)
-    tetrominoes_color = prompt.get("tetrominoes_color", None)
     agumentation = prompt.get("agumentation", None)
 
     example_responses = []
@@ -210,7 +209,7 @@ def get_user_input():
     return response
 
 
-def get_gemini_response(prompt_name, example_ids, image_path=None):
+def get_ai_response(prompt_name, example_ids, image_path=None):
     if args.manual:
         return get_user_input()
 
@@ -218,7 +217,7 @@ def get_gemini_response(prompt_name, example_ids, image_path=None):
     while retry_count < 50:
         try:
             if args.model == "gemini-pro-vision":
-                response_text = generate_ai_response(
+                response_text = generate_gemini_response(
                     prompt_name, example_ids, image_path
                 )
             if args.model == "gpt-4-vision-preview":
@@ -310,7 +309,7 @@ def main():
     while True:
         time.sleep(1)
         image_path = f"screens/screenshot_{state_counter-1}.png"
-        actions = get_gemini_response(
+        actions = get_ai_response(
             args.prompt_name, args.example_ids, image_path=image_path
         )
         for action in actions:
