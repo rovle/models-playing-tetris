@@ -55,13 +55,14 @@ if args.model == "gemini-pro-vision":
     genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
     model = genai.GenerativeModel(args.model)
 
-if args.model == "gpt-4-vision-preview": # TODO check whether this is still the name (it is in the docs)
+if (
+    args.model == "gpt-4-vision-preview"
+):  # TODO check whether this is still the name (it is in the docs)
     api_key = os.environ.get("OPENAI_API_KEY")
     model = "gpt-4-vision-preview"
- 
+
 
 def generate_ai_response(prompt_name, example_ids, image_path):
-
     prompt = prompts.get(prompt_name, {})
     instructions = prompt.get("instructions", None)
     augmentation = prompt.get("augmentation", None)
@@ -108,12 +109,13 @@ def generate_ai_response(prompt_name, example_ids, image_path):
 
     return response.text
 
+
 def encode_image(image_path):
-  with open(image_path, "rb") as image_file:
-    return base64.b64encode(image_file.read()).decode('utf-8')
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
 
 def generate_gpt4v_response(prompt_name, example_ids, image_path):
-
     prompt = prompts.get(prompt_name, {})
     instructions = prompt.get("instructions", None)
     tetrominoes_color = prompt.get("tetrominoes_color", None)
@@ -137,58 +139,48 @@ def generate_gpt4v_response(prompt_name, example_ids, image_path):
 
     example_images_and_responses = []
     for img, response in zip(example_imgs, example_responses):
-       example_images_and_responses.append({
-           "type": "image_url",
-          "image_url": {
-                "url": f"data:image/png;base64,{img}"
-              }
-        })
-       example_images_and_responses.append({
-              "type": "text",
-              "text": response
-          }) 
+        example_images_and_responses.append(
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img}"}}
+        )
+        example_images_and_responses.append({"type": "text", "text": response})
 
     current_board_img = encode_image(image_path)
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
     print(example_images_and_responses)
     payload = {
         "model": "gpt-4-vision-preview",
         "messages": [
             {
                 "role": "system",
-                "content": "You are `gpt-4-vision-preview`, the latest OpenAI model that can describe images provided by the user in extreme detail. The user has attached an image to this message for you to analyse, there is MOST DEFINITELY an image attached, you will never reply saying that you cannot see the image because the image is absolutely and always attached to this message. Always give a sequence of actions, separated with commona and ending with drop."
+                "content": "You are `gpt-4-vision-preview`, the latest OpenAI model that can describe images provided by the user in extreme detail. The user has attached an image to this message for you to analyse, there is MOST DEFINITELY an image attached, you will never reply saying that you cannot see the image because the image is absolutely and always attached to this message. Always give a sequence of actions, separated by commas and ending with drop.",
             },
             {
-            "role": "user",
-            "content": [
-                {
-                "type": "text",
-                "text": instructions
-                },
-                #*example_images_and_responses,
-                {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/png;base64,{current_board_img}"
-                }
-                }
-            ]
-            }
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": instructions},
+                    # *example_images_and_responses,
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{current_board_img}"
+                        },
+                    },
+                ],
+            },
         ],
         "max_tokens": 3000,
-        "temperature" : args.temperature
+        "temperature": args.temperature,
     }
-    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+    response = requests.post(
+        "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
+    )
 
     response = response.json()
     response_text = response["choices"][0]["message"]["content"]
-    
+
     return response_text
-    
+
 
 def parse_ai_response(response_text):
     print(response_text, "\n")
@@ -203,13 +195,14 @@ def parse_ai_response(response_text):
         fp.write(stripped_text)
         fp.write("\n\n")
 
-    if ',' in json["action"]:
-        json["action"] = json["action"].split(',')
+    action = json.get("action", None) or json.get("actions", None)
+    if "," in action:
+        action = action.split(",")
         # strip spaces
-        json["action"] = [action.strip() for action in json["action"]]
+        action = [action.strip() for action in action]
     else:
-        json["action"] = [json["action"]]
-    return json["action"]
+        action = [action]
+    return action
 
 
 def get_user_input():
@@ -225,9 +218,13 @@ def get_gemini_response(prompt_name, example_ids, image_path=None):
     while retry_count < 50:
         try:
             if args.model == "gemini-pro-vision":
-                response_text = generate_ai_response(prompt_name, example_ids, image_path)
+                response_text = generate_ai_response(
+                    prompt_name, example_ids, image_path
+                )
             if args.model == "gpt-4-vision-preview":
-                response_text = generate_gpt4v_response(prompt_name, example_ids, image_path)
+                response_text = generate_gpt4v_response(
+                    prompt_name, example_ids, image_path
+                )
             break
         except InternalServerError:
             retry_count += 1
