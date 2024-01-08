@@ -160,7 +160,7 @@ def generate_gpt4v_response(prompt_name, example_ids, image_path):
         "messages": [
             {
                 "role": "system",
-                "content": "You are `gpt-4-vision-preview`, the latest OpenAI model that can describe images provided by the user in extreme detail. The user has attached an image to this message for you to analyse, there is MOST DEFINITELY an image attached, you will never reply saying that you cannot see the image because the image is absolutely and always attached to this message. When giving actions, always give just one action per message."
+                "content": "You are `gpt-4-vision-preview`, the latest OpenAI model that can describe images provided by the user in extreme detail. The user has attached an image to this message for you to analyse, there is MOST DEFINITELY an image attached, you will never reply saying that you cannot see the image because the image is absolutely and always attached to this message. Always give a sequence of actions, separated with commona and ending with drop."
             },
             {
             "role": "user",
@@ -203,6 +203,12 @@ def parse_ai_response(response_text):
         fp.write(stripped_text)
         fp.write("\n\n")
 
+    if ',' in json["action"]:
+        json["action"] = json["action"].split(',')
+        # strip spaces
+        json["action"] = [action.strip() for action in json["action"]]
+    else:
+        json["action"] = [json["action"]]
     return json["action"]
 
 
@@ -307,48 +313,48 @@ def main():
     while True:
         time.sleep(1)
         image_path = f"screens/screenshot_{state_counter-1}.png"
-        action = get_gemini_response(
+        actions = get_gemini_response(
             args.prompt_name, args.example_ids, image_path=image_path
         )
-        
-        with open(f"actions/action_{state_counter}", "w") as fp:
-            fp.write(action)
-        while True:
-            time.sleep(0.1)
-            with open("new_game.txt", "r") as fp:
-                new_game = fp.read().split(",")
-            if new_game[0] == str(state_counter):
-                break
-        state_counter += 1
-        if new_game[1] == "1":
-            # move actions, screens and responses folders to game_number folder
-            os.mkdir(f"previous_games/game_{game_number}")
-            shutil.move("actions", f"previous_games/game_{game_number}/actions")
-            shutil.move("screens", f"previous_games/game_{game_number}/screens")
-            shutil.move("responses", f"previous_games/game_{game_number}/responses")
-            with open("pieces_count.txt", "r") as fp:
-                pieces_count = int(fp.read())
+        for action in actions:
+            with open(f"actions/action_{state_counter}", "w") as fp:
+                fp.write(action)
+            while True:
+                time.sleep(0.1)
+                with open("new_game.txt", "r") as fp:
+                    new_game = fp.read().split(",")
+                if new_game[0] == str(state_counter):
+                    break
+            state_counter += 1
+            if new_game[1] == "1":
+                # move actions, screens and responses folders to game_number folder
+                os.mkdir(f"previous_games/game_{game_number}")
+                shutil.move("actions", f"previous_games/game_{game_number}/actions")
+                shutil.move("screens", f"previous_games/game_{game_number}/screens")
+                shutil.move("responses", f"previous_games/game_{game_number}/responses")
+                with open("pieces_count.txt", "r") as fp:
+                    pieces_count = int(fp.read())
 
-            information_dict = {
-                "prompt_name": args.prompt_name,
-                "example_ids": args.example_ids,
-                "pieces_count": pieces_count,
-                "model": args.model,
-                "temperature": args.temperature,
-            }
-            # save as json in game_number folder
-            with open(f"previous_games/game_{game_number}/info.json", "w") as fp:
-                json.dump(information_dict, fp)
+                information_dict = {
+                    "prompt_name": args.prompt_name,
+                    "example_ids": args.example_ids,
+                    "pieces_count": pieces_count,
+                    "model": args.model,
+                    "temperature": args.temperature,
+                }
+                # save as json in game_number folder
+                with open(f"previous_games/game_{game_number}/info.json", "w") as fp:
+                    json.dump(information_dict, fp)
 
-            refresh_folders()
-            create_video(game_number)
-            state_counter = 1
-            game_number += 1
+                refresh_folders()
+                create_video(game_number)
+                state_counter = 1
+                game_number += 1
 
-            with open("new_game.txt", "w") as fp:
-                fp.write("0,0")
-            with open("finished_restart.txt", "w") as fp:
-                fp.write("1")
+                with open("new_game.txt", "w") as fp:
+                    fp.write("0,0")
+                with open("finished_restart.txt", "w") as fp:
+                    fp.write("1")
 
 
 if __name__ == "__main__":
