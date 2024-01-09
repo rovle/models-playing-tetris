@@ -35,8 +35,8 @@
     "id": 5,
     "image_path": "assets/images/example_5.png",
     "board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty.",
-    "tetromino": "L",
-    "explanation": "The current game strategy hasn't been ideal. It's generally better to fill the corners of the board to prevent blocks from stacking up too high in one area. In this case, the best move would be to move the L tetromino to the right, all the way against the wall, and then carefully lower it to fill any gaps in the bottom row. This will start to create a more even foundation for future blocks.",
+    "tetromino": "J",
+    "explanation": "The current game strategy hasn't been ideal. It's generally better to fill the corners of the board to prevent blocks from stacking up too high in one area. In this case, the best move would be to move the J tetromino to the right, all the way against the wall, and then carefully lower it to fill any gaps in the bottom row. This will start to create a more even foundation for future blocks.",
     "action": "right"
   },
   {
@@ -50,7 +50,7 @@
   {
     "id": 7,
     "image_path": "assets/images/j_tetromino.png",
-    "board_state": "The board is empty. The falling tetromino is a yellow J.",
+    "board_state": "The board is empty. The falling tetromino is a pink J.",
     "tetromino": "J",
     "explanation": "With an empty board, you have the most flexibility in placing the J tetromino. You can drop it anywhere without affecting existing lines.",
     "action": "drop"
@@ -58,7 +58,7 @@
   {
     "id": 8,
     "image_path": "assets/images/l_tetromino.png",
-    "board_state": "The board is empty. The falling tetromino is a pink L.",
+    "board_state": "The board is empty. The falling tetromino is a yellow L.",
     "tetromino": "L",
     "explanation": "With an empty board, you have the most flexibility in placing the L tetromino. You can drop it anywhere without affecting existing lines.",
     "action": "drop"
@@ -131,8 +131,8 @@
     "id": 17,
     "image_path": "assets/images/example_5.png",
     "board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty. The current game strategy hasn't been ideal. It's generally better to fill the corners of the board to prevent blocks from stacking up too high in one area.",
-    "tetromino": "L",
-    "explanation": "The best move would be to move the L tetromino to the right, all the way against the wall, and then carefully lower it to fill any gaps in the bottom row. This will start to create a more even foundation for future blocks.",
+    "tetromino": "J",
+    "explanation": "The best move would be to move the J tetromino to the right, all the way against the wall, and then carefully lower it to fill any gaps in the bottom row. This will start to create a more even foundation for future blocks.",
     "action": "right, right, right, down, down, down, down, down, down, down, down, down, down, down, down, down, left, drop"
   },
   {
@@ -146,25 +146,25 @@
   {
     "id": 19,
     "image_path": "assets/images/line_clear_2.png",
-    "board_state": "The board has a yellow O tetromino at the bottom-left corner and falling yellow J tetromino.",
-    "tetromino": "J",
-    "explanation": "The best move is to move the J tetromino left and then drop it to the right of the O tetromino. This way, the right side of the board can be filled with the next tetrominoes and easily clear a line.",
+    "board_state": "The board has a yellow O tetromino at the bottom-left corner and a falling orange L tetromino.",
+    "tetromino": "L",
+    "explanation": "The best move is to move the L tetromino left and then drop it to the right of the O tetromino. This way, the right side of the board can be filled with the next tetrominoes and easily clear a line.",
     "action": "left, left, drop"
   },
   {
     "id": 20,
     "image_path": "assets/images/line_clear_3.png",
-    "board_state": "The board has a yellow O tetromino at the bottom-left corner and an orange J tetromino next to it. The falling tetromino is a pink L.",
-    "tetromino": "L",
-    "explanation": "Moving the L tetromino right and then dropping it to the right of the J tetromino leaves the board in a good position for an easy line clear.",
+    "board_state": "The board has a yellow O tetromino at the bottom-left corner and an orange L tetromino next to it. The falling tetromino is a pink J.",
+    "tetromino": "J",
+    "explanation": "Moving the J tetromino right and then dropping it to the right of the L tetromino leaves the board in a good position for an easy line clear.",
     "action": "right, drop"
   },
   {
     "id": 21,
     "image_path": "assets/images/line_clear_4.png",
-    "board_state": "The board has a yellow O tetromino at the bottom-left corner with an orange J and a pink L next to it. The falling tetromino is a pink L.",
-    "tetromino": "L",
-    "explanation": "The best move is to rotate the L tetromino counterclockwise, move it to the right wall and drop it. This will clear a line.",
+    "board_state": "The board has a yellow O tetromino at the bottom-left corner with an orange L and a pink J next to it. The falling tetromino is a pink J.",
+    "tetromino": "J",
+    "explanation": "The best move is to rotate the J tetromino counterclockwise, move it to the right wall and drop it. This will clear a line.",
     "action": "turn left, right, right, right, right, drop"
   },
   {
@@ -178,9 +178,9 @@
   {
     "id": 23,
     "image_path": "assets/images/line_clear_6.png",
-    "board_state": "There are 3 gaps on the right side of the board. The falling tetromino is a yellow J.",
-    "tetromino": "Z",
-    "explanation": "Moving the J tetromino to the right 2 times and dropping it is the optimal choice, as it clears a line while preserving the evenness of the playing field.",
+    "board_state": "There are 3 gaps on the right side of the board. The falling tetromino is a yellow L.",
+    "tetromino": "L",
+    "explanation": "Moving the L tetromino to the right 2 times and dropping it is the optimal choice, as it clears a line while preserving the evenness of the playing field.",
     "action": "right, right, drop"
   }
 ]
