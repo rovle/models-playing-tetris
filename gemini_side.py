@@ -23,7 +23,7 @@ import image_transformation as img_transform
 import base64
 import requests
 import random
-
+import replicate
 
 load_dotenv()
 
@@ -35,7 +35,7 @@ parser.add_argument(
     "--temperature", type=float, help="temperature for AI generation", default=0.4
 )
 parser.add_argument(
-    "--prompt_name", help="name of the prompt for AI generation", default="prompt_1"
+    "--prompt_name", help="name of the prompt for AI generation", default="prompt_1_v1"
 )
 parser.add_argument(
     "--example_ids",
@@ -55,13 +55,13 @@ if args.model == "gemini-pro-vision":
     genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
     model = genai.GenerativeModel(args.model)
 
-if (
-    args.model == "gpt-4-vision-preview"
-):  # TODO check whether this is still the name (it is in the docs)
+if args.model == "gpt-4-vision-preview": 
     api_key = os.environ.get("OPENAI_API_KEY")
     model = "gpt-4-vision-preview"
 
-
+if args.model == "llava-13b":
+    model = "yorickvp/llava-13b:e272157381e2a3bf12df3a8edd1f38d1dbd736bbb7437277c8b34175f8fce358"
+    
 def generate_gemini_response(prompt_name, example_ids, image_path):
     prompt = prompts.get(prompt_name, {})
     instructions = prompt.get("instructions", None)
@@ -180,6 +180,52 @@ def generate_gpt4v_response(prompt_name, example_ids, image_path):
 
     return response_text
 
+def get_llava_response(prompt_name, example_ids, image_path):
+        prompt = prompts.get(prompt_name, {})
+        instructions = prompt.get("instructions", None)
+        augmentation = prompt.get("augmentation", None)
+        """
+        example_responses = []
+        example_imgs = []
+        for example in examples:
+            if example["id"] in example_ids:
+                example_responses.append(
+                    {
+                        "board_state": example["board_state"],
+                        "tetromino": example["tetromino"],
+                        "explanation": example["explanation"],
+                        "action": example["action"],
+                    }
+                )
+                example_imgs.append(open(example["image_path"], "rb"))
+
+        example_responses = [json.dumps(example) for example in example_responses]
+
+        example_images_and_responses = []
+        for img, response in zip(example_imgs, example_responses):
+            example_images_and_responses.append({"image": img})
+            example_images_and_responses.append({"prompt" : response})
+
+        current_board_img = open(image_path, "rb")
+        if augmentation:
+            current_board_imgs = img_transform.apply_augmentations(
+                image_path, augmentation
+            ) + [current_board_img]
+        else:
+            current_board_imgs = [current_board_img]
+        """
+        response = replicate.run(
+            model,
+            input={
+                "prompt": instructions + " Separate actions by comma.",
+                "image": open(image_path, "rb")
+                },
+        )
+        response = list(response)
+        # response is a list of strings, combine them
+        response = ''.join(response)
+        
+        return response
 
 def parse_ai_response(response_text):
     print(response_text, "\n")
@@ -225,8 +271,12 @@ def get_ai_response(prompt_name, example_ids, image_path=None):
                 response_text = generate_gemini_response(
                     prompt_name, example_ids, image_path
                 )
-            if args.model == "gpt-4-vision-preview":
+            elif args.model == "gpt-4-vision-preview":
                 response_text = generate_gpt4v_response(
+                    prompt_name, example_ids, image_path
+                )
+            elif args.model == "llava-13b":
+                response_text = get_llava_response(
                     prompt_name, example_ids, image_path
                 )
             break
