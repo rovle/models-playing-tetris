@@ -167,5 +167,6 @@ actions/*
 responses/*
 
 previous_games/*
+!previous_games/game_0
 finished_restart.txt
 new_game.txt
