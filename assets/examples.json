@@ -17,14 +17,6 @@
   },
   {
     "id": 3,
-    "image_path": "assets/images/example_3.png",
-    "board_state": "The board is filled with 3 tetrominoes on the bottom right side. The rightmost column, the 3rd column from the right, and the first 4 columns from the left are all empty.",
-    "tetromino": "Z",
-    "explanation": "Dropping the Z tetromino would be the best move to fill the empty space to the left of the T tetromino and potentially clear a line.",
-    "action": "drop"
-  },
-  {
-    "id": 4,
     "image_path": "assets/images/example_4.png",
     "board_state": "The board has a yellow square tetromino on the bottom center and blue I tetromino lying on its side to the right of it. The left side of the board is empty.",
     "tetromino": "O",
@@ -32,7 +24,7 @@
     "action": "left"
   },
   {
-    "id": 5,
+    "id": 4,
     "image_path": "assets/images/example_5.png",
     "board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty.",
     "tetromino": "J",
@@ -40,7 +32,23 @@
     "action": "right"
   },
   {
+    "id": 5,
+    "image_path": "assets/images/line_clear_4.png",
+    "board_state": "The board has a yellow O tetromino at the bottom-left corner with an orange L and a pink J next to it. There are 2 empty spaces on the bottom-right corner. The falling tetromino is a pink J.",
+    "tetromino": "J",
+    "explanation": "The best move is to rotate the J tetromino counterclockwise so it's shaped like a backwards L. It can then be moved all the way to the right and dropped to clear a line.",
+    "action": "turn left"
+  },
+  {
     "id": 6,
+    "image_path": "assets/images/line_clear_5.png",
+    "board_state": "A line was cleard in the previous move. The bottom row has 2 empty spaces on the left and 3 on the right. The falling tetromino is a green Z.",
+    "tetromino": "Z",
+    "explanation": "The best move is to fit the Z tetromino in the empty spaces on the left side. This leaves the board in a good position for a line clear.",
+    "action": "left"
+  },
+  {
+    "id": 7,
     "image_path": "assets/images/i_tetromino.png",
     "board_state": "The board is empty. The falling tetromino is a blue I.",
     "tetromino": "I",
@@ -48,7 +56,7 @@
     "action": "drop"
   },
   {
-    "id": 7,
+    "id": 8,
     "image_path": "assets/images/j_tetromino.png",
     "board_state": "The board is empty. The falling tetromino is a pink J.",
     "tetromino": "J",
@@ -56,7 +64,7 @@
     "action": "drop"
   },
   {
-    "id": 8,
+    "id": 9,
     "image_path": "assets/images/l_tetromino.png",
     "board_state": "The board is empty. The falling tetromino is a yellow L.",
     "tetromino": "L",
@@ -64,7 +72,7 @@
     "action": "drop"
   },
   {
-    "id": 9,
+    "id": 10,
     "image_path": "assets/images/o_tetromino.png",
     "board_state": "The board is empty. The falling tetromino is a yellow O.",
     "tetromino": "O",
@@ -72,7 +80,7 @@
     "action": "drop"
   },
   {
-    "id": 10,
+    "id": 11,
     "image_path": "assets/images/s_tetromino.png",
     "board_state": "The board is empty. The falling tetromino is a red S.",
     "tetromino": "S",
@@ -80,7 +88,7 @@
     "action": "drop"
   },
   {
-    "id": 11,
+    "id": 12,
     "image_path": "assets/images/t_tetromino.png",
     "board_state": "The board is empty. The falling tetromino is a purple T.",
     "tetromino": "T",
@@ -88,7 +96,7 @@
     "action": "drop"
   },
   {
-    "id": 12,
+    "id": 13,
     "image_path": "assets/images/z_tetromino.png",
     "board_state": "The board is empty. The falling tetromino is a green Z.",
     "tetromino": "Z",
@@ -96,7 +104,7 @@
     "action": "drop"
   },
   {
-    "id": 13,
+    "id": 14,
     "image_path": "assets/images/example_1.png",
     "board_state": "The board is empty.",
     "tetromino": "S",
@@ -104,7 +112,7 @@
     "action": "left, left, left, left, drop"
   },
   {
-    "id": 14,
+    "id": 15,
     "image_path": "assets/images/example_2.png",
     "board_state": "The board has a T tetromino on the bottom center.",
     "tetromino": "I",
@@ -112,7 +120,7 @@
     "action": "left, left, left, drop"
   },
   {
-    "id": 15,
+    "id": 16,
     "image_path": "assets/images/example_3.png",
     "board_state": "The board is filled with 3 tetrominoes on the bottom right side. The rightmost column, the 3rd column from the right, and the first 4 columns from the left are all empty.",
     "tetromino": "Z",
@@ -120,7 +128,7 @@
     "action": "drop"
   },
   {
-    "id": 16,
+    "id": 17,
     "image_path": "assets/images/example_4.png",
     "board_state": "The board has a yellow square tetromino on the bottom center and blue I tetromino lying on its side to the right of it. The left side of the board is empty.",
     "tetromino": "O",
@@ -128,7 +136,7 @@
     "action": "left, drop"
   },
   {
-    "id": 17,
+    "id": 18,
     "image_path": "assets/images/example_5.png",
     "board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty. The current game strategy hasn't been ideal. It's generally better to fill the corners of the board to prevent blocks from stacking up too high in one area.",
     "tetromino": "J",
@@ -136,7 +144,7 @@
     "action": "right, right, right, down, down, down, down, down, down, down, down, down, down, down, down, down, left, drop"
   },
   {
-    "id": 18,
+    "id": 19,
     "image_path": "assets/images/line_clear_1.png",
     "board_state": "The board is empty except for a falling yellow square tetromino.",
     "tetromino": "O",
@@ -144,7 +152,7 @@
     "action": "left, left, left, left,drop"
   },
   {
-    "id": 19,
+    "id": 20,
     "image_path": "assets/images/line_clear_2.png",
     "board_state": "The board has a yellow O tetromino at the bottom-left corner and a falling orange L tetromino.",
     "tetromino": "L",
@@ -152,7 +160,7 @@
     "action": "left, left, drop"
   },
   {
-    "id": 20,
+    "id": 21,
     "image_path": "assets/images/line_clear_3.png",
     "board_state": "The board has a yellow O tetromino at the bottom-left corner and an orange L tetromino next to it. The falling tetromino is a pink J.",
     "tetromino": "J",
@@ -160,15 +168,15 @@
     "action": "right, drop"
   },
   {
-    "id": 21,
+    "id": 22,
     "image_path": "assets/images/line_clear_4.png",
-    "board_state": "The board has a yellow O tetromino at the bottom-left corner with an orange L and a pink J next to it. The falling tetromino is a pink J.",
+    "board_state": "The board has a yellow O tetromino at the bottom-left corner with an orange L and a pink J next to it. There are 2 empty spaces on the bottom-right corner. The falling tetromino is a pink J.",
     "tetromino": "J",
-    "explanation": "The best move is to rotate the J tetromino counterclockwise, move it to the right wall and drop it. This will clear a line.",
+    "explanation": "The best move is to rotate the J tetromino counterclockwise so it's shaped like a backwards L, then move it all the way to the right and drop it. This will clear a line.",
     "action": "turn left, right, right, right, right, drop"
   },
   {
-    "id": 22,
+    "id": 23,
     "image_path": "assets/images/line_clear_5.png",
     "board_state": "A line was cleard in the previous move. There are 2 gaps to the left and 3 to the right side of the board. The falling tetromino is a green Z.",
     "tetromino": "Z",
@@ -176,7 +184,7 @@
     "action": "left, left, left, drop"
   },
   {
-    "id": 23,
+    "id": 24,
     "image_path": "assets/images/line_clear_6.png",
     "board_state": "There are 3 gaps on the right side of the board. The falling tetromino is a yellow L.",
     "tetromino": "L",
