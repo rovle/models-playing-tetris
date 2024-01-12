@@ -178,9 +178,9 @@
   {
     "id": 23,
     "image_path": "assets/images/line_clear_5.png",
-    "board_state": "A line was cleard in the previous move. There are 2 gaps to the left and 3 to the right side of the board. The falling tetromino is a green Z.",
+    "board_state": "A line was cleard in the previous move. The bottom row has 2 empty spaces on the left and 3 on the right. The falling tetromino is a green Z.",
     "tetromino": "Z",
-    "explanation": "The best move is to place the Z tetromino so it fills the gaps on the left side. This leaves the board in a good position for a line clear.",
+    "explanation": "The best move is to fit the Z tetromino in the empty spaces on the left side. This leaves the board in a good position for a line clear.",
     "action": "left, left, left, drop"
   },
   {
