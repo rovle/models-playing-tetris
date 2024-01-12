@@ -734,12 +734,15 @@ class Game:
             if os.path.exists(f"actions/action_{self.state_counter}"):
                 with open(f"actions/action_{self.state_counter}") as f:
                     action = f.readline()
+                action = action.lower()
                 if (action == "clockwise" or action == "rotate clockwise"
                               or action == "turn clockwise"):
                     action = "turn right"
                 if (action == "counterclockwise" or action == "rotate counterclockwise"
                     or action == "turn clockwise"):
-                    action == "turn left"
+                    action = "turn left"
+                if action.startswith("move"):
+                    action = action.split(" ")[1]
                 self.act(action)
                 self.update_gui()
                 self.gui.redraw()
