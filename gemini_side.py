@@ -114,6 +114,15 @@ def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
+def check_if_valid_json(response_text):
+    try:
+        stripped_text = response_text[
+            response_text.index("{") : (response_text.index("}") + 1)
+        ]
+        json = eval(stripped_text)
+        return True
+    except:
+        return False
 
 def generate_gpt4v_response(prompt_name, example_ids, image_path):
     prompt = prompts.get(prompt_name, {})
@@ -146,7 +155,6 @@ def generate_gpt4v_response(prompt_name, example_ids, image_path):
     current_board_img = encode_image(image_path)
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
-    print(example_images_and_responses)
     payload = {
         "model": "gpt-4-vision-preview",
         "messages": [
@@ -158,7 +166,7 @@ def generate_gpt4v_response(prompt_name, example_ids, image_path):
                 "role": "user",
                 "content": [
                     {"type": "text", "text": instructions},
-                    # *example_images_and_responses,
+                    #*example_images_and_responses,
                     {
                         "type": "image_url",
                         "image_url": {
@@ -176,8 +184,8 @@ def generate_gpt4v_response(prompt_name, example_ids, image_path):
     )
 
     response = response.json()
+    print(response)
     response_text = response["choices"][0]["message"]["content"]
-
     return response_text
 
 def get_llava_response(prompt_name, example_ids, image_path):
@@ -279,7 +287,12 @@ def get_ai_response(prompt_name, example_ids, image_path=None):
                 response_text = get_llava_response(
                     prompt_name, example_ids, image_path
                 )
-            break
+            if check_if_valid_json(response_text):
+                break
+            else:
+                retry_count += 1
+                print(f"Invalid JSON {retry_count}/50, retrying...")
+                continue
         except InternalServerError:
             retry_count += 1
             print(f"Internal server error {retry_count}/50, retrying...")
