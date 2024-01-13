@@ -35,8 +35,9 @@
     "id": 5,
     "image_path": "assets/images/line_clear_4.png",
     "tetromino": "J",
-    "explanation": "The best move is to rotate the J tetromino counterclockwise. It can then be moved all the way to the right and dropped to clear a line.",
-    "action": "turn left"
+    "board_state": "The board has a yellow O tetromino at the bottom-left corner with an orange L and a pink J next to it. There are 2 empty spaces on the bottom-right corner. The falling tetromino is a pink J.",
+    "move_analysis": "The best move is to rotate the J tetromino counterclockwise. It can then be moved all the way to the right and dropped to clear a line.",
+    "action": "rotate counterclockwise"
   },
   {
     "id": 6,
@@ -170,9 +171,9 @@
     "id": 22,
     "image_path": "assets/images/line_clear_4.png",
     "tetromino": "J",
+    "board_state": "The board has a yellow O tetromino at the bottom-left corner with an orange L and a pink J next to it. There are 2 empty spaces on the bottom-right corner. The falling tetromino is a pink J.",
     "move_analysis": "The best move is to rotate the J tetromino counterclockwise, then move it all the way to the right and drop it. This will clear a line.",
-    "explanation": "The best move is to rotate the J tetromino counterclockwise, then move it all the way to the right and drop it. This will clear a line.",
-    "action": "turn left, right, right, right, right, drop"
+    "action": "rotate counterclockwise, right, right, right, right, drop"
   },
   {
     "id": 23,
@@ -193,9 +194,9 @@
   {
     "id": 25,
     "image_path": "assets/images/so_called_good_game_1.png",
-    "tetromino":"I",
+    "tetromino": "I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a tower of stacked tetrominoes in the left corner, and smaller tower all through the rest of the board of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "move_analysis": "Given that there is a gap on the far right and filling it will result in multiple line clears, we should rotate the I tetromino, currently in horizontal orientation, clockwise, move it right 4 times and then drop it.",
-    "action": "rotate clockwise, right, right, right, right, drop" 
+    "action": "rotate clockwise, right, right, right, right, drop"
   }
 ]
