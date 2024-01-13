@@ -1,12 +1,3 @@
-"""
-Actions that Gemini will be able to do:
-    - Left ("left")
-    - Right ("right")
-    - Down ("down")
-    - Complete down ("drop")
-    - Rotate clockwise ("turn right")
-    - Rotate counterclockwise ("turn left")
-"""
 import os
 import shutil
 import time
@@ -61,11 +52,12 @@ if args.model == "gpt-4-vision-preview":
 
 if args.model == "llava-13b":
     model = "yorickvp/llava-13b:e272157381e2a3bf12df3a8edd1f38d1dbd736bbb7437277c8b34175f8fce358"
-    
+
 def generate_gemini_response(prompt_name, example_ids, image_path):
     prompt = prompts.get(prompt_name, {})
     instructions = prompt.get("instructions", None)
     augmentation = prompt.get("augmentation", None)
+
 
     example_responses = []
     example_imgs = []
@@ -160,13 +152,13 @@ def generate_gpt4v_response(prompt_name, example_ids, image_path):
         "messages": [
             {
                 "role": "system",
-                "content": "You are `gpt-4-vision-preview`, the latest OpenAI model that can describe images provided by the user in extreme detail. The user has attached an image to this message for you to analyse, there is MOST DEFINITELY an image attached, you will never reply saying that you cannot see the image because the image is absolutely and always attached to this message. Always give a sequence of actions, separated by commas and ending with drop.",
+                "content": "You are `gpt-4-vision-preview`, the latest OpenAI model that can describe images provided by the user in extreme detail. The user has attached an image to this message for you to analyse, there is MOST DEFINITELY an image attached, you will never reply saying that you cannot see the image because the image is absolutely and always attached to this message.",
             },
             {
                 "role": "user",
                 "content": [
                     {"type": "text", "text": instructions},
-                    #*example_images_and_responses,
+                    *example_images_and_responses,
                     {
                         "type": "image_url",
                         "image_url": {
@@ -192,40 +184,11 @@ def get_llava_response(prompt_name, example_ids, image_path):
         prompt = prompts.get(prompt_name, {})
         instructions = prompt.get("instructions", None)
         augmentation = prompt.get("augmentation", None)
-        """
-        example_responses = []
-        example_imgs = []
-        for example in examples:
-            if example["id"] in example_ids:
-                example_responses.append(
-                    {
-                        "board_state": example["board_state"],
-                        "tetromino": example["tetromino"],
-                        "explanation": example["explanation"],
-                        "action": example["action"],
-                    }
-                )
-                example_imgs.append(open(example["image_path"], "rb"))
-
-        example_responses = [json.dumps(example) for example in example_responses]
-
-        example_images_and_responses = []
-        for img, response in zip(example_imgs, example_responses):
-            example_images_and_responses.append({"image": img})
-            example_images_and_responses.append({"prompt" : response})
-
-        current_board_img = open(image_path, "rb")
-        if augmentation:
-            current_board_imgs = img_transform.apply_augmentations(
-                image_path, augmentation
-            ) + [current_board_img]
-        else:
-            current_board_imgs = [current_board_img]
-        """
+        
         response = replicate.run(
             model,
             input={
-                "prompt": instructions + " Separate actions by comma.",
+                "prompt": instructions,
                 "image": open(image_path, "rb")
                 },
         )
@@ -371,16 +334,23 @@ def main():
     input("Start the game and then press Enter...")
     if args.model == "manual":
         print(
-            "The possible moves are: left, right, down, drop, turn right and turn left"
+            "The possible moves are: left, right, down, drop, rotate clockwise and rotate counterclockwise."
         )
-
+    action_list = []
     while True:
         time.sleep(1)
         image_path = f"screens/screenshot_{state_counter-1}.png"
+        # check if the last four actions are rotations 
         actions = get_ai_response(
             args.prompt_name, args.example_ids, image_path=image_path
         )
         for action in actions:
+            if action != "down":
+                action_list.append(action)
+            if action == "drop" or "drop" in actions:
+                action_list = []
+            if len(action_list) > 8:
+                action = "drop"
             with open(f"actions/action_{state_counter}", "w") as fp:
                 fp.write(action)
             while True:
@@ -391,6 +361,7 @@ def main():
                     break
             state_counter += 1
             if new_game[1] == "1":
+                action_list = []
                 # move actions, screens and responses folders to game_number folder
                 os.mkdir(f"previous_games/game_{game_number}")
                 shutil.move("actions", f"previous_games/game_{game_number}/actions")
