@@ -351,6 +351,7 @@ def main():
                 action_list = []
             if len(action_list) > 8:
                 action = "drop"
+                action_list = []
             with open(f"actions/action_{state_counter}", "w") as fp:
                 fp.write(action)
             while True:
