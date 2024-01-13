@@ -197,6 +197,14 @@
     "tetromino": "I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a tower of stacked tetrominoes in the left corner, and smaller tower all through the rest of the board of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "move_analysis": "Given that there is a gap on the far right and filling it will result in multiple line clears, we should rotate the I tetromino, currently in horizontal orientation, clockwise, move it right 4 times and then drop it.",
-    "action": "rotate clockwise, right, right, right, right, drop"
+    "action": "rotate clockwise, right, right, right, right, drop" 
+  },
+  {
+    "id:": 26,
+    "image_path": "assets/images/so_called_good_game_2.png",
+    "tetromino": "T",
+    "board_state": "The board has been well-filled with no major gaps. There is a stack of tetrominoes in the right corner, smaller stack in the left, and a small gap in the middle. In particular these is one empty space in the bottom row into which a fitting tetromino can be dropped.",
+    "move_analysis": "Filling the gap in the middle seems like the best move given that it clears a line. The T shaped tetromino is particularly well suited for it because it can be rotated counterclockwise, moved left once and then dropped, and in doing so not create any new major gaps by filling that one.",
+    "action": "rotate counterclockwise, left, drop"
   }
 ]
