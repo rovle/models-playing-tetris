@@ -65,9 +65,9 @@ def generate_gemini_response(prompt_name, example_ids, image_path):
         if example["id"] in example_ids:
             example_responses.append(
                 {
-                    "board_state": example["board_state"],
                     "tetromino": example["tetromino"],
-                    "explanation": example["explanation"],
+                    "board_state": example["board_state"],
+                    "move_analysis": example["move_analysis"],
                     "action": example["action"],
                 }
             )
@@ -127,9 +127,9 @@ def generate_gpt4v_response(prompt_name, example_ids, image_path):
         if example["id"] in example_ids:
             example_responses.append(
                 {
-                    "board_state": example["board_state"],
                     "tetromino": example["tetromino"],
-                    "explanation": example["explanation"],
+                    "board_state": example["board_state"],
+                    "move_analysis": example["move_analysis"],
                     "action": example["action"],
                 }
             )
