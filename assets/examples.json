@@ -199,7 +199,7 @@
     "action": "rotate clockwise, right, right, right, right, drop" 
   },
   {
-    "id:": 26,
+    "id": 26,
     "image_path": "assets/images/so_called_good_game_2.png",
     "tetromino": "T",
     "board_state": "The board has been well-filled with no major gaps. There is a stack of tetrominoes in the right corner, smaller stack in the left, and a small gap in the middle. In particular these is one empty space in the bottom row into which a fitting tetromino can be dropped.",
