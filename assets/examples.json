@@ -276,7 +276,7 @@
   },
   {
     "id": 33,
-    "image_path": "assets/images/so_called_good_image_1.png",
+    "image_path": "assets/images/so_called_good_game_1.png",
     "tetromino":"I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "preliminary_analysis": "The I tetromino should ideally be slotted into the gap on the right, though some other options are possible.",
