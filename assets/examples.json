@@ -194,8 +194,8 @@
   {
     "id": 25,
     "image_path": "assets/images/so_called_good_game_1.png",
-    "tetromino": "I",
-    "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a tower of stacked tetrominoes in the left corner, and smaller tower all through the rest of the board of the board, with a small gap in the right where a long tetromino can be slotted in.",
+    "tetromino":"I",
+    "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "move_analysis": "Given that there is a gap on the far right and filling it will result in multiple line clears, we should rotate the I tetromino, currently in horizontal orientation, clockwise, move it right 4 times and then drop it.",
     "action": "rotate clockwise, right, right, right, right, drop"
   },
@@ -210,10 +210,10 @@
   {
     "id": 27,
     "image_path": "assets/images/so_called_good_game_1.png",
-    "tetromino": "I",
-    "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a tower of stacked tetrominoes in the left corner, and smaller tower all through the rest of the board of the board, with a small gap in the right where a long tetromino can be slotted in.",
+    "tetromino":"I",
+    "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "move_analysis": "Given that there is a gap on the far right and filling it will result in multiple line clears, we want to use the I tetromino to fill it. In order to do so, we need to rotate it clockwise and move it to the right, so we can first rotate it.",
-    "action": "rotate clockwise"
+    "action": "rotate clockwise" 
   },
   {
     "id": 28,
@@ -230,5 +230,63 @@
     "board_state": "The board has been well-filled with no major gaps. There is a stack of tetrominoes in the right corner, a smaller stack in the center, and a small gap in the left. In particular there are two empty spaces in the bottom row into which a fitting tetromino can be dropped.",
     "move_analysis": "Filling the gap in the left seems like the best move given that it clears a line. The O shaped tetromino is particularly well suited for it because it can be moved left four times and then dropped, and in doing so not create any new major gaps by filling that one.",
     "action": "left"
+  },
+  {
+    "id": 30,
+    "image_path": "assets/images/so_called_good_game_1.png",
+    "tetromino":"I",
+    "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
+    "left": "There is already a large stack of tetrominoes on the left, so it is best to avoid adding to it. Therefore, this move is not advisable.",
+    "right": "There is significantly more space on the right side of the board, and in particular there is a gap into which the I tetromino can be dropped. Therefore, this move is advisable.",
+    "down": "There is no particular reason to move the I tetromino down just yet.",
+    "drop": "Not only would dropping the I tetromino now cause a significant gap since its leftmost cell would be left hanging, but dropping it would prevent us from bringing it closer to the right corner where it can clear lines.",
+    "rotate clockwise": "Rotating clockwise would make the tetromino vertical rather than horizontal, which is what we need for the gap on the right. Therefore we could either do this move first or move right first.",
+    "rotate counterclockwise": "Since this is the I tetromino, rotating counterclockwise is equivalent to rotating clockwise.",
+    "final_analysis": "The best move is to either move the I tetromino right or rotate it clockwise.",
+    "action": "right"
+  },
+  {
+    "id": 31,
+    "image_path": "assets/images/so_called_good_game_3.png",
+    "tetromino": "O",
+    "board_state": "The board has been well-filled with no major gaps. There is a stack of tetrominoes in the right corner, a smaller stack in the center, and a small gap in the left. In particular there are two empty spaces in the bottom row into which a fitting tetromino can be dropped.",
+    "left": "The gap is on the left, so it is best to move the O tetromino left.",
+    "right": "There is one two-cell space on the right where O could be dropped, but it is not as good as the gap on the left. Therefore, this move is not advisable.",
+    "down": "No reason to move O down just yet.",
+    "drop": "This would be a bad move from various perspectives. Not only would it not slot in nicely if dropped directly below, but it would also prevent us from moving it left and filling the gap.",
+    "rotate clockwise": "Since this is the O tetromino, it cannot be rotated.",
+    "rotate counterclockwise": "Since this is the O tetromino, it cannot be rotated.",
+    "final_analysis": "The best move is to move the O tetromino left, to make it closer to the gap.",
+    "action": "left"
+  },
+  {
+    "id": 32,
+    "image_path": "assets/images/so_called_good_game_3.png",
+    "tetromino": "O",
+    "board_state": "The board has been well-filled with no major gaps. There is a stack of tetrominoes in the right corner, a smaller stack in the center, and a small gap in the left. In particular there are two empty spaces in the bottom row into which a fitting tetromino can be dropped.",
+    "preliminary_analysis": "We should move the O tetromino to the left, since there is a gap there.",
+    "action_proposal_1": "left, drop",
+    "analysis_of_actions_1": "This would move the O insufficiently to the left, and would not fill the gap.",
+    "action_proposal_2": "left, left, left, left, drop",
+    "analysis_of_actions_2": "This would place the O tetromino directly into the gap, thus clearing a line.",
+    "action_proposal_3": "left, left, left, drop",
+    "analysis_of_actions_3": "This would move the O insufficiently to the left, and would not fill the gap.",
+    "final_analysis": "Since we require 4 left moves to place the O tetromino above the gap, the best move is to move it left 4 times and then drop it.",
+    "action": "left, left, left, left, drop"
+  },
+  {
+    "id": 33,
+    "image_path": "assets/images/so_called_good_image_1.png",
+    "tetromino":"I",
+    "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
+    "preliminary_analysis": "The I tetromino should ideally be slotted into the gap on the right, though some other options are possible.",
+    "action_proposal_1": "rotate clockwise, right, right, drop",
+    "analysis_of_actions_1": "The I tetromino, after being moved only two times, would only fall to an even ground of other tetrominoes. Thus this move would only contribute to growing the stack.",
+    "action_proposal_2": "rotate clockwise, left, left, drop",
+    "analysis_of_actions_2": "This would make the I tetromino slot nicely in the gap made by the pink and purple tetrominos. It is not a bad move as it would fill a gap, but it wouldn't clear any lines.",
+    "action_proposal_3": "rotate clockwise, right, right, right, right, drop",
+    "analysis_of_actions_3": "After these moves the I tetromino would be hugging the right border and be perfectly positioned to fill the gap and thus clear several lines.",
+    "final_analysis": "Since rotating the I tetromino and then moving it 4 times would cclear several lines that seems like the best option.",
+    "action": "rotate clockwise, right, right, right, right, drop"
   }
 ]
