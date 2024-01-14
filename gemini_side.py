@@ -58,19 +58,12 @@ def generate_gemini_response(prompt_name, example_ids, image_path):
     instructions = prompt.get("instructions", None)
     augmentation = prompt.get("augmentation", None)
 
-
     example_responses = []
     example_imgs = []
     for example in examples:
         if example["id"] in example_ids:
-            example_responses.append(
-                {
-                    "tetromino": example["tetromino"],
-                    "board_state": example["board_state"],
-                    "move_analysis": example["move_analysis"],
-                    "action": example["action"],
-                }
-            )
+            example_dict = {k: v for i, (k, v) in enumerate(example.items()) if i > 1}
+            example_responses.append(example_dict)
             example_imgs.append(Image.open(example["image_path"]))
 
     example_responses = [json.dumps(example) for example in example_responses]
@@ -125,14 +118,8 @@ def generate_gpt4v_response(prompt_name, example_ids, image_path):
     example_imgs = []
     for example in examples:
         if example["id"] in example_ids:
-            example_responses.append(
-                {
-                    "tetromino": example["tetromino"],
-                    "board_state": example["board_state"],
-                    "move_analysis": example["move_analysis"],
-                    "action": example["action"],
-                }
-            )
+            example_dict = {k: v for i, (k, v) in enumerate(example.items()) if i > 1}
+            example_responses.append(example_dict)
             example_imgs.append(encode_image(example["image_path"]))
 
     example_responses = [json.dumps(example) for example in example_responses]
