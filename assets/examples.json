@@ -76,7 +76,7 @@
     "image_path": "assets/images/o_tetromino.png",
     "tetromino": "O",
     "board_state": "The board is empty. The falling tetromino is a yellow O.",
-    "move_analysis": "With an empty board, you have the most flexibility in placing the S tetromino. You can drop it anywhere without affecting existing lines.",
+    "move_analysis": "With an empty board, you have the most flexibility in placing the O tetromino. You can drop it anywhere without affecting existing lines.",
     "action": "drop"
   },
   {
@@ -236,7 +236,7 @@
     "image_path": "assets/images/so_called_good_game_1.png",
     "tetromino":"I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
-    "left": "There is already a large stack of tetrominoes on the left, so it is best to avoid adding to it. Therefore, this move is not advisable.",
+    "left": "There is already a large stack of tetrominoes on the left, so it is best to avoid adding to it, hence this move is not advisable.",
     "right": "There is significantly more space on the right side of the board, and in particular there is a gap into which the I tetromino can be dropped. Therefore, this move is advisable.",
     "down": "There is no particular reason to move the I tetromino down just yet.",
     "drop": "Not only would dropping the I tetromino now cause a significant gap since its leftmost cell would be left hanging, but dropping it would prevent us from bringing it closer to the right corner where it can clear lines.",
