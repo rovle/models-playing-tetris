@@ -27,8 +27,8 @@
     "id": 4,
     "image_path": "assets/images/example_5.png",
     "tetromino": "J",
-    "board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty.",
-    "move_analysis": "The current game strategy hasn't been ideal. It's generally better to fill the corners of the board to prevent blocks from stacking up too high in one area. In this case, the best move would be to move the J tetromino to the right, all the way against the wall, and then carefully lower it to fill any gaps in the bottom row. This will start to create a more even foundation for future blocks.",
+    "board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty. The current game strategy hasn't been ideal. It's generally better to fill the corners of the board to prevent blocks from stacking up too high in one area.",
+    "move_analysis": "Filling the sides of the board seems like the best move as this will create a more even foundation for future blocks. To do this, the J tetromino can be moved to the right, all the way against the wall, and then dropped to fill the gaps in the bottom row.",
     "action": "right"
   },
   {
@@ -140,8 +140,8 @@
     "image_path": "assets/images/example_5.png",
     "tetromino": "J",
     "board_state": "The board has a tall stack of blocks in the center, reaching 10 rows high. The sides of the board are empty. The current game strategy hasn't been ideal. It's generally better to fill the corners of the board to prevent blocks from stacking up too high in one area.",
-    "move_analysis": "The best move would be to move the J tetromino to the right, all the way against the wall, and then carefully lower it to fill any gaps in the bottom row. This will start to create a more even foundation for future blocks.",
-    "action": "right, right, right, down, down, down, down, down, down, down, down, down, down, down, down, down, left, drop"
+    "move_analysis": "Filling the sides of the board seems like the best move as this will create a more even foundation for future blocks. To do this, the J tetromino can be moved to the right, all the way against the wall, and then dropped to fill the gaps in the bottom row.",
+    "action": "right, right, right, drop"
   },
   {
     "id": 19,
@@ -194,25 +194,41 @@
   {
     "id": 25,
     "image_path": "assets/images/so_called_good_game_1.png",
-    "tetromino":"I",
+    "tetromino": "I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a tower of stacked tetrominoes in the left corner, and smaller tower all through the rest of the board of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "move_analysis": "Given that there is a gap on the far right and filling it will result in multiple line clears, we should rotate the I tetromino, currently in horizontal orientation, clockwise, move it right 4 times and then drop it.",
-    "action": "rotate clockwise, right, right, right, right, drop" 
+    "action": "rotate clockwise, right, right, right, right, drop"
   },
   {
     "id": 26,
     "image_path": "assets/images/so_called_good_game_2.png",
     "tetromino": "T",
-    "board_state": "The board has been well-filled with no major gaps. There is a stack of tetrominoes in the right corner, smaller stack in the left, and a small gap in the middle. In particular these is one empty space in the bottom row into which a fitting tetromino can be dropped.",
+    "board_state": "The board has been well-filled with no major gaps. There is a stack of tetrominoes in the right corner, a smaller stack in the left, and a small gap in the middle. In particular there is one empty space in the bottom row into which a fitting tetromino can be dropped.",
     "move_analysis": "Filling the gap in the middle seems like the best move given that it clears a line. The T shaped tetromino is particularly well suited for it because it can be rotated counterclockwise, moved left once and then dropped, and in doing so not create any new major gaps by filling that one.",
     "action": "rotate counterclockwise, left, drop"
   },
   {
     "id": 27,
     "image_path": "assets/images/so_called_good_game_1.png",
-    "tetromino":"I",
+    "tetromino": "I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a tower of stacked tetrominoes in the left corner, and smaller tower all through the rest of the board of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "move_analysis": "Given that there is a gap on the far right and filling it will result in multiple line clears, we want to use the I tetromino to fill it. In order to do so, we need to rotate it clockwise and move it to the right, so we can first rotate it.",
-    "action": "rotate clockwise" 
+    "action": "rotate clockwise"
+  },
+  {
+    "id": 28,
+    "image_path": "assets/images/so_called_good_game_3.png",
+    "tetromino": "O",
+    "board_state": "The board has been well-filled with no major gaps. There is a stack of tetrominoes in the right corner, a smaller stack in the center, and a small gap in the left. In particular there are two empty spaces in the bottom row into which a fitting tetromino can be dropped.",
+    "move_analysis": "Filling the gap in the left seems like the best move given that it clears a line. The O shaped tetromino is particularly well suited for it because it can be moved left four times and then dropped, and in doing so not create any new major gaps by filling that one.",
+    "action": "left, left, left, left, drop"
+  },
+  {
+    "id": 29,
+    "image_path": "assets/images/so_called_good_game_3.png",
+    "tetromino": "O",
+    "board_state": "The board has been well-filled with no major gaps. There is a stack of tetrominoes in the right corner, a smaller stack in the center, and a small gap in the left. In particular there are two empty spaces in the bottom row into which a fitting tetromino can be dropped.",
+    "move_analysis": "Filling the gap in the left seems like the best move given that it clears a line. The O shaped tetromino is particularly well suited for it because it can be moved left four times and then dropped, and in doing so not create any new major gaps by filling that one.",
+    "action": "left"
   }
 ]
