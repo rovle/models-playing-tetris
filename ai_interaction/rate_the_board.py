@@ -10,7 +10,7 @@ from datetime import datetime
 import google.generativeai as genai
 from google.api_core.exceptions import InternalServerError
 from PIL import Image
-import image_transformation as img_transform
+import lib.image_transformation as img_transform
 import base64
 import requests
 import random

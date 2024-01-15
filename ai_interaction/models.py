@@ -1,20 +1,24 @@
 import os
 from abc import ABC, abstractmethod
-import base64
 import json
+import pdb
 import requests
 import random
+from dotenv import load_dotenv
 
 from PIL import Image
 import google.generativeai as genai
 import replicate
 
-import image_transformation as img_transform
+import lib.image_transformation as img_transform
+
+load_dotenv()
 
 with open("assets/prompts.json", "r") as prompt_file:
     prompts = json.load(prompt_file)
 with open("assets/examples.json", "r") as example_file:
     examples = json.load(example_file)
+
 
 class BaseModel(ABC):
     def __init__(self, model_name, temperature):
@@ -78,10 +82,6 @@ class Gpt4VisionPreview(BaseModel):
         super().__init__(model_name, temperature)
         self.api_key = os.environ.get("OPENAI_API_KEY")
         self.model = "gpt-4-vision-preview"
-    
-    def encode_image(self, image_path):
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode("utf-8")
 
     def generate_response(self, prompt_name, example_ids, image_path):
         prompt = prompts.get(prompt_name, {})
@@ -94,7 +94,7 @@ class Gpt4VisionPreview(BaseModel):
             if example["id"] in example_ids:
                 example_dict = {k: v for i, (k, v) in enumerate(example.items()) if i > 1}
                 example_responses.append(example_dict)
-                example_imgs.append(self.encode_image(example["image_path"]))
+                example_imgs.append(img_transform.encode_image(example["image_path"]))
 
         example_responses = [json.dumps(example) for example in example_responses]
 
@@ -105,7 +105,7 @@ class Gpt4VisionPreview(BaseModel):
             )
             example_images_and_responses.append({"type": "text", "text": response})
 
-        current_board_img = self.encode_image(image_path)
+        current_board_img = img_transform.encode_image(image_path)
 
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"}
         payload = {
@@ -182,3 +182,23 @@ def get_model(model_name, temperature):
         "manual": ManualPlayer
     }
     return models.get(model_name)(model_name, temperature)
+
+def parse_response(prompt_name, response_text):
+    print(response_text, "\n")
+
+    prompt = prompts.get(prompt_name, {})
+    action_type = prompt.get("action_type", None)
+    
+    stripped_text = response_text[
+        response_text.index("{") : (response_text.index("}") + 1)
+    ]
+    data = eval(stripped_text)
+    action = data.get("action", None)
+
+    if "," in action:
+        action_arr = action.split(",")
+        stripped_action_arr = [action_arr[0].strip()] if action_type == 'single' else [action.strip() for action in action_arr]
+    else:
+        stripped_action_arr = [action]
+
+    return stripped_action_arr, stripped_text
