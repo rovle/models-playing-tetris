@@ -18,7 +18,7 @@ cp .env.example .env
 
 Run this files in separate terminals:
 
-```python
+```bash
 python gemini_side.py
 python game.py
 ```

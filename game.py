@@ -1,6 +1,7 @@
 import sys
 import os
 import pygame
+import json
 
 from lib import helper
 from tetromino import Tetromino
@@ -9,6 +10,9 @@ import numpy as np
 from gui import Gui
 import time
 from common import *
+
+from game_agent_comms import (update_communications_log,
+                              read_communications_log)
 
 INITIAL_EX_WIGHT = 0.0
 SPIN_SHIFT_FOR_NON_T = [(1, 0, 0), (-1, 0, 0),
@@ -591,7 +595,6 @@ class Gamestate:
                     break
         return heights
 
-
 class Game:
     def __init__(self, gui=None, seed=None, height=0):
         self.gui = gui
@@ -602,22 +605,19 @@ class Game:
         self.state_counter = 0
 
     def act(self, action):
-        with open("new_game.txt", "w") as fp:
-            fp.write(f"{self.state_counter},0")
+        update_communications_log("state_counter", f"{self.state_counter}")
         if self.current_state.game_status == "gameover":
-            with open("new_game.txt", "w") as fp:
-                fp.write(f"{self.state_counter},1")
-            with open("pieces_count.txt", "w") as fp:
-                fp.write(str(self.current_state.pieces))
+            update_communications_log("game_over", "1")
+            update_communications_log("pieces_count", str(self.current_state.pieces))
             self.state_counter = 0
             self.restart()
+
             while True:
-                with open("finished_restart.txt", "r") as fp:
-                    if fp.read() == "1":
-                        break
+                if read_communications_log("finished_restart") == "1":
+                    break
                 time.sleep(0.1)
-            with open("finished_restart.txt", "w") as fp:
-                fp.write("0")
+            update_communications_log("finished_restart", "0")
+
             return self.get_state_input(self.current_state), 0, True, False
 
         success = False
@@ -722,17 +722,27 @@ class Game:
                 self.update_gui()
                 self.gui.redraw()
 
+            # check for the last game number
+            time.sleep(0.1)
+            folder_names = os.listdir("games_archive")
+            if len(folder_names) > 0:
+                game_number = max( [int(folder.split("_")[1])
+                               for folder in folder_names] )
+            else:
+                continue
+            path = f"games_archive/game_{game_number}"
+
             if self.state_counter == 0:
                 capture_area = pygame.Rect(screen_x, screen_y, screen_width, screen_height)
                 screen_surface = pygame.display.get_surface()
                 subsurface = screen_surface.subsurface(capture_area)
                 #screen_surface = pygame.display.get_surface()
-                pygame.image.save(subsurface, f"screens/screenshot_{self.state_counter}.png")
+                pygame.image.save(subsurface, f"{path}/screens/screenshot_{self.state_counter}.png")
                 self.state_counter += 1
                 self.is_reset = False
             # here goes the file reading stuff--
-            if os.path.exists(f"actions/action_{self.state_counter}"):
-                with open(f"actions/action_{self.state_counter}") as f:
+            if os.path.exists(f"{path}/actions/action_{self.state_counter}"):
+                with open(f"{path}/actions/action_{self.state_counter}") as f:
                     action = f.readline()
                 action = action.lower()
                 if (action == "clockwise" or action == "rotate clockwise"
@@ -749,7 +759,7 @@ class Game:
                 capture_area = pygame.Rect(screen_x, screen_y, screen_width, screen_height)
                 screen_surface = pygame.display.get_surface()
                 subsurface = screen_surface.subsurface(capture_area)
-                pygame.image.save(subsurface, f"screens/screenshot_{self.state_counter}.png")
+                pygame.image.save(subsurface, f"{path}/screens/screenshot_{self.state_counter}.png")
                 self.state_counter += 1
 
             for event in pygame.event.get():

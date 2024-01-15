@@ -1,4 +1,5 @@
 *.mp4
+games_archive/*
 pieces_count.txt
 # Byte-compiled / optimized / DLL files
 lib/__pycache__/
