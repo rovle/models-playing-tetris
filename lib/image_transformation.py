@@ -146,7 +146,7 @@ def apply_augmentations(image_path, augmentation_data):
         # show_image(augmented_image)
     return augmented_images
 
-def encode_image(self, image_path):
+def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
