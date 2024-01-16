@@ -70,8 +70,9 @@ def manage_model(args):
 
     game_number = get_next_game_number()
     create_new_game_folder(game_number)
-    communications_log = CommunicationsLog()
-
+    communications_log = CommunicationsLog(restart_log=True)
+    if args.tetris_seed:
+        communications_log["tetris_seed"] = int(args.tetris_seed)
     state_counter = 1
 
     if args.model == "manual":

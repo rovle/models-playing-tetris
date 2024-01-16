@@ -2,18 +2,21 @@ import json
 import os
 
 class CommunicationsLog:
-    def __init__(self, filename="logs/communications_log.json"):
+    def __init__(self, filename="logs/communications_log.json",
+                 restart_log=False):
         self.filename = filename
         self.log = None
+        self.restart_log = restart_log
         # Initialize the log file
         if not os.path.exists(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))
-        if not os.path.exists(filename):
+        if self.restart_log or (not os.path.exists(filename)):
             self.init_log_file()
 
     def init_log_file(self):
         with open(self.filename, "w") as fp:
             json.dump({
+                "tetris_seed": "-",
                 "state_counter": "-",
                 "game_over": "-",
                 "finished_restart": "-",

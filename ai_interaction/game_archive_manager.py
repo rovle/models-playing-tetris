@@ -23,6 +23,7 @@ def save_action(game_number, state_counter, action):
 def save_info(game_number, args):
     communications_log = CommunicationsLog()
     information_dict = {
+        "tetris_seed": communications_log["tetris_seed"],
         "model": args.model,
         "temperature": args.temperature,
         "prompt_name": args.prompt_name,

@@ -991,6 +991,12 @@ class Game:
         return []
 
 def start():
-    game = Game(gui=Gui(), seed=None)
+    time.sleep(0.1)
+    communications_log = CommunicationsLog()
+    if communications_log["tetris_seed"] == "-":
+        seed = None
+    else:
+        seed = communications_log["tetris_seed"]
+    game = Game(gui=Gui(), seed=seed)
     game.restart()
     game.run()

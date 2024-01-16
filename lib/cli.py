@@ -18,4 +18,9 @@ def parse_args():
         help="list of IDs of examples to use for few-shot prompting. See the possible values in assets/examples.json",
         default=[],
     )
+    parser.add_argument(
+        "--tetris_seed",
+        type=int,
+        help="seed for the Tetris game. If it is supplied all the games will be played with the same seed, i.e. the same sequence of pieces",
+    )
     return parser.parse_args()

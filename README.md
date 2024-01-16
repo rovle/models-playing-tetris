@@ -32,6 +32,8 @@ options:
                         name of the prompt for AI generation. See the possible values in assets/prompts.json
   --example_ids [EXAMPLE_IDS ...]
                         list of IDs of examples to use for few-shot prompting. See the possible values in assets/examples.json
+  --tetris_seed TETRIS_SEED
+                        seed for the Tetris game. If it is supplied all the games will be played with the same seed, i.e. the same sequence of pieces
 ```
 
 Example command:
