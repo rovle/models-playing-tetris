@@ -116,6 +116,7 @@ if __name__ == "__main__":
 
     ci_pieces_count = TetrisData.confidence_interval_95(filtered_records, 'pieces_count')
     print(f"95% Confidence Interval for Pieces Count: {ci_pieces_count}")
+    print(f"Number of Games: {len(filtered_records)}")
     print("\n---\n")
     # group by each argument that is None, and print the average pieces count for each group
     unspecified_fields = [field for field in ['model', 'temperature', 'prompt_name', 'example_ids', 'tetris_seed'] if not getattr(args, field)]
