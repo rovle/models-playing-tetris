@@ -1,17 +1,15 @@
 import sys
 import os
 import pygame
-import json
-
-from lib import helper
-from tetromino import Tetromino
 import random
-import numpy as np
-from gui import Gui
-import time
-from common import *
 
-from game_agent_comms import (update_communications_log,
+import time
+import numpy as np
+from tetris.lib import helper
+from tetris.tetromino import Tetromino
+from tetris.common import *
+from tetris.gui import Gui
+from lib.game_agent_comms import (update_communications_log,
                               read_communications_log)
 
 INITIAL_EX_WIGHT = 0.0
@@ -986,8 +984,7 @@ class Game:
         sys.stderr('WARNING: cannot find the moves from current gamestate to target gamestate.')
         return []
 
-
-if __name__ == "__main__":
+def start():
     game = Game(gui=Gui(), seed=None)
     game.restart()
     game.run()

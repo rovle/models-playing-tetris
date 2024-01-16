@@ -241,8 +241,8 @@
     "down": "There is no particular reason to move the I tetromino down just yet.",
     "drop": "Not only would dropping the I tetromino now cause a significant gap since its leftmost cell would be left hanging, but dropping it would prevent us from bringing it closer to the right corner where it can clear lines.",
     "rotate clockwise": "Rotating clockwise would make the tetromino vertical rather than horizontal, which is what we need for the gap on the right. Therefore we could either do this move first or move right first.",
-    "rotate counterclockwise": "Since this is the I tetromino, rotating counterclockwise is equivalent to rotating clockwise.",
-    "final_analysis": "The best move is to either move the I tetromino right or rotate it clockwise.",
+    "rotate counterclockwise": "Rotating counterclockwise would make the tetromino vertical rather than horizontal, which is what we need for the gap on the right. Therefore we could either do this move, rotate clockwise or move right first.",
+    "final_analysis": "The best move is to either move the I tetromino right or rotate it clockwise or counterclockwise.",
     "action": "right"
   },
   {

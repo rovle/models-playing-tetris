@@ -1,6 +1,6 @@
 import pygame
-from lib import color
-from common import *
+from tetris.lib import color
+from tetris.common import *
 
 class RectC:
     def __init__(self, rect, c):

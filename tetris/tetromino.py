@@ -1,5 +1,5 @@
 import random
-from common import *
+from tetris.common import *
 
 
 class Tetromino:

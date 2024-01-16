@@ -18,7 +18,7 @@ import cv2
 from PIL import Image
 import numpy as np
 import random
-
+import base64
 
 def load_image(file_path):
     """
@@ -145,6 +145,10 @@ def apply_augmentations(image_path, augmentation_data):
         # Show the augmented images (press Esc to close the windows)
         # show_image(augmented_image)
     return augmented_images
+
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
 
 
 def show_image(image):
