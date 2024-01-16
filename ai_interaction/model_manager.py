@@ -79,8 +79,9 @@ def manage_model(args):
         print("The possible moves are: left, right, down, drop, rotate clockwise and rotate counterclockwise.")
 
     while True:
-        time.sleep(0.2)
         image_path = f"games_archive/game_{game_number}/screens/screenshot_{state_counter-1}.png"
+        while not os.path.exists(image_path):
+            time.sleep(0.1)
 
         actions, detailed_response = get_model_response(
             model, args.prompt_name, args.example_ids, image_path=image_path
