@@ -47,7 +47,8 @@ class TetrisData:
 
     @staticmethod
     def average_pieces_count(records: List['TetrisData']) -> float:
-        return sum(record.pieces_count for record in records) / len(records) if records else 0
+        average = sum(record.pieces_count for record in records) / len(records) if records else 0
+        return round(average, 2) 
 
     @staticmethod
     def confidence_interval_95(records: List['TetrisData'],
@@ -113,10 +114,6 @@ if __name__ == "__main__":
     avg_pieces_count = TetrisData.average_pieces_count(filtered_records)
     print(f"Average Pieces Count (Filtered): {avg_pieces_count}")
 
-    # Example: Computing average pieces count
-    avg_pieces_count = sum(record.pieces_count for record in tetris_records) / len(tetris_records)
-    print(f"Average Pieces Count: {avg_pieces_count}")
-
     ci_pieces_count = TetrisData.confidence_interval_95(filtered_records, 'pieces_count')
     print(f"95% Confidence Interval for Pieces Count: {ci_pieces_count}")
     print("\n---\n")
@@ -124,11 +121,11 @@ if __name__ == "__main__":
     unspecified_fields = [field for field in ['model', 'temperature', 'prompt_name', 'example_ids', 'tetris_seed'] if not getattr(args, field)]
     grouped_records = TetrisData.group_by_fields(filtered_records, unspecified_fields)
     
-    average_scores_by_group = {key: TetrisData.average_pieces_count(group) for key, group in grouped_records.items()}
+    average_scores_by_group = {key: (TetrisData.average_pieces_count(group), len(group)) for key, group in grouped_records.items()}
 
     # Sort the groups by average score in descending order
     sorted_average_scores = sorted(average_scores_by_group.items(), key=lambda x: x[1], reverse=True)
     
-    for key, avg_score in sorted_average_scores:
+    for key, (avg_score, count) in sorted_average_scores:
         labeled_key = ", ".join(f"{field}: {value}" for field, value in zip(unspecified_fields, key))
-        print(f"Group ({labeled_key}): Average Score = {avg_score}")
+        print(f"Group ({labeled_key}): Average Score = {avg_score}, Number of Games = {count}")
