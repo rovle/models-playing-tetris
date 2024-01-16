@@ -197,8 +197,13 @@ def parse_response(prompt_name, response_text):
 
     if "," in action:
         action_arr = action.split(",")
-        stripped_action_arr = [action_arr[0].strip()] if action_type == 'single' else [action.strip() for action in action_arr]
+        stripped_action_arr = ( [action_arr[0].strip()] if action_type == 'single'
+                            else [action.strip() for action in action_arr] )
     else:
         stripped_action_arr = [action]
 
+    if len(stripped_action_arr) == 1:
+        action = stripped_action_arr[0]
+        if action not in ["down", "drop"]:
+            stripped_action_arr = [action, "down"]
     return stripped_action_arr, stripped_text
