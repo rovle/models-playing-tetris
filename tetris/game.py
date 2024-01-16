@@ -9,8 +9,7 @@ from tetris.lib import helper
 from tetris.tetromino import Tetromino
 from tetris.common import *
 from tetris.gui import Gui
-from lib.game_agent_comms import (update_communications_log,
-                              read_communications_log)
+from lib.game_agent_comms import CommunicationsLog
 
 INITIAL_EX_WIGHT = 0.0
 SPIN_SHIFT_FOR_NON_T = [(1, 0, 0), (-1, 0, 0),
@@ -603,24 +602,25 @@ class Game:
         self.state_counter = 0
 
     def act(self, action):
-        update_communications_log("state_counter", f"{self.state_counter}")
+        communications_log = CommunicationsLog()
+        communications_log["state_counter"] = str(self.state_counter)
         if self.current_state.game_status == "gameover":
-            update_communications_log("game_over", "1")
-            update_communications_log("pieces_count", str(self.current_state.pieces))
-            update_communications_log("score", str(int(self.current_state.score)))
-            update_communications_log("lines_cleared", str(self.current_state.lines))
-            update_communications_log("n_lines", self.current_state.n_lines)
-            update_communications_log("t_spins", self.current_state.t_spins)
-            update_communications_log("combo", str(int(self.current_state.combo)))
-            
+            communications_log["game_over"] = "1"
+            communications_log["pieces_count"] = str(self.current_state.pieces)
+            communications_log["score"] = str(int(self.current_state.score))
+            communications_log["lines_cleared"] = str(self.current_state.lines)
+            communications_log["n_lines"] = self.current_state.n_lines
+            communications_log["t_spins"] = self.current_state.t_spins
+            communications_log["combo"] = str(int(self.current_state.combo))
+           
             self.state_counter = 0
             self.restart()
 
             while True:
-                if read_communications_log("finished_restart") == "1":
+                if communications_log["finished_restart"] == "1":
                     break
                 time.sleep(0.1)
-            update_communications_log("finished_restart", "0")
+            communications_log["finished_restart"] = "0"
 
             return self.get_state_input(self.current_state), 0, True, False
 

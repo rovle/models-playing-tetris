@@ -4,11 +4,7 @@ from google.api_core.exceptions import InternalServerError
 
 from lib.json_utils import check_if_valid_json
 from lib.video_creation import create_video
-from lib.game_agent_comms import (
-    create_new_communications_log,
-    update_communications_log,
-    read_communications_log,
-)
+from lib.game_agent_comms import CommunicationsLog
 from ai_interaction.models import get_model, parse_response
 from ai_interaction.game_archive_manager import (
     create_new_game_folder,
@@ -52,8 +48,9 @@ def handle_game_over(game_number, state_counter, args):
     state_counter = 1
     game_number += 1
     create_new_game_folder(game_number)
-    update_communications_log("finished_restart", "1")
-    update_communications_log("game_over", "0")
+    communications_log = CommunicationsLog()
+    communications_log["finished_restart"] = "1"
+    communications_log["game_over"] = "0"
     return state_counter, game_number
 
 
@@ -73,7 +70,7 @@ def manage_model(args):
 
     game_number = get_next_game_number()
     create_new_game_folder(game_number)
-    create_new_communications_log()
+    communications_log = CommunicationsLog()
 
     state_counter = 1
 
@@ -81,7 +78,7 @@ def manage_model(args):
         print("The possible moves are: left, right, down, drop, rotate clockwise and rotate counterclockwise.")
 
     while True:
-        time.sleep(0.5)
+        time.sleep(0.2)
         image_path = f"games_archive/game_{game_number}/screens/screenshot_{state_counter-1}.png"
 
         actions, detailed_response = get_model_response(
@@ -95,12 +92,12 @@ def manage_model(args):
 
             while True:
                 time.sleep(0.1)
-                if read_communications_log("state_counter") == str(state_counter):
+                if communications_log["state_counter"] == str(state_counter):
                     break
 
             state_counter += 1
 
-            if read_communications_log("game_over") == "1":
+            if communications_log["game_over"] == "1":
                 state_counter, game_number = handle_game_over(
                     game_number, state_counter, args
                 )
