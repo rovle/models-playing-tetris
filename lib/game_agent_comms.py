@@ -16,16 +16,16 @@ class CommunicationsLog:
     def init_log_file(self):
         with open(self.filename, "w") as fp:
             json.dump({
-                "tetris_seed": "-",
-                "state_counter": "-",
-                "game_over": "-",
-                "finished_restart": "-",
-                "score": "-",
-                "lines_cleared": "-",
-                "pieces_count" : "-",
-                "n_lines": "-",
-                "t_spins": "-",
-                "combo": "-"
+                "tetris_seed": None,
+                "state_counter": None,
+                "game_over": None,
+                "finished_restart": None,
+                "score": None,
+                "lines_cleared": None,
+                "pieces_count" : None,
+                "n_lines": None,
+                "t_spins": None,
+                "combo": None
             },
             fp)
         self.log = {}

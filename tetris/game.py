@@ -993,7 +993,7 @@ class Game:
 def start():
     time.sleep(0.1)
     communications_log = CommunicationsLog()
-    if communications_log["tetris_seed"] == "-":
+    if communications_log["tetris_seed"] is None:
         seed = None
     else:
         seed = communications_log["tetris_seed"]
