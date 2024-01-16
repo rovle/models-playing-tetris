@@ -607,6 +607,12 @@ class Game:
         if self.current_state.game_status == "gameover":
             update_communications_log("game_over", "1")
             update_communications_log("pieces_count", str(self.current_state.pieces))
+            update_communications_log("score", str(int(self.current_state.score)))
+            update_communications_log("lines_cleared", str(self.current_state.lines))
+            update_communications_log("n_lines", self.current_state.n_lines)
+            update_communications_log("t_spins", self.current_state.t_spins)
+            update_communications_log("combo", str(int(self.current_state.combo)))
+            
             self.state_counter = 0
             self.restart()
 

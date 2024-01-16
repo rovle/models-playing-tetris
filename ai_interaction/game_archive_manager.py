@@ -22,11 +22,16 @@ def save_action(game_number, state_counter, action):
 
 def save_info(game_number, args):
     information_dict = {
+        "model": args.model,
+        "temperature": args.temperature,
         "prompt_name": args.prompt_name,
         "example_ids": args.example_ids,
         "pieces_count": int(read_communications_log("pieces_count")),
-        "model": args.model,
-        "temperature": args.temperature,
+        "lines_cleared": int(read_communications_log("lines_cleared")),
+        "score": int(read_communications_log("score")),
+        "n_lines": read_communications_log("n_lines"),
+        "t_spins": read_communications_log("t_spins"),
+        "combo": int(read_communications_log("combo")),
     }
     with open(f"games_archive/game_{game_number}/info.json", "w") as fp:
         json.dump(information_dict, fp)

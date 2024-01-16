@@ -7,7 +7,12 @@ def create_new_communications_log():
                     "state_counter": "-",
                     "game_over": "-",
                     "finished_restart": "-",
-                    "pieces_count" : "-"
+                    "score": "-",
+                    "lines_cleared": "-",
+                    "pieces_count" : "-",
+                    "n_lines": "-",
+                    "t_spins": "-",
+                    "combo": "-"
                 },
                 fp)
     return None
