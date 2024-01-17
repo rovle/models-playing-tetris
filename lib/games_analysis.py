@@ -119,10 +119,14 @@ if __name__ == "__main__":
     print(f"Number of Games: {len(filtered_records)}")
     print("\n---\n")
     # group by each argument that is None, and print the average pieces count for each group
-    unspecified_fields = [field for field in ['model', 'temperature', 'prompt_name', 'example_ids', 'tetris_seed'] if not getattr(args, field)]
+    unspecified_fields = [field
+                          for field in ['model', 'temperature', 'prompt_name',
+                                        'example_ids', 'tetris_seed']
+                          if not getattr(args, field)]
     grouped_records = TetrisData.group_by_fields(filtered_records, unspecified_fields)
     
-    average_scores_by_group = {key: (TetrisData.average_pieces_count(group), len(group)) for key, group in grouped_records.items()}
+    average_scores_by_group = {key: (TetrisData.average_pieces_count(group), len(group))
+                               for key, group in grouped_records.items()}
 
     # Sort the groups by average score in descending order
     sorted_average_scores = sorted(average_scores_by_group.items(), key=lambda x: x[1], reverse=True)

@@ -728,7 +728,11 @@ class Game:
 
             # check for the last game number
             time.sleep(0.1)
-            folder_names = os.listdir("games_archive")
+            try:
+                folder_names = os.listdir("games_archive")
+            except FileNotFoundError:
+                time.sleep(0.1)
+                continue
             if len(folder_names) > 0:
                 game_number = max( [int(folder.split("_")[1])
                                for folder in folder_names] )

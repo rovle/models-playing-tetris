@@ -17,7 +17,6 @@ def create_video(game_number):
         f"game_{game_number}.mp4",
     ]
 
-    # Start the subprocess without waiting for it to finish
     with (
         open("logs/ffmpeg_output.log", "w") as output_log,
         open("logs/ffmpeg_error.log", "w") as error_log,
