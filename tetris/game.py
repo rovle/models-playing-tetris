@@ -612,11 +612,13 @@ class Game:
             communications_log["n_lines"] = self.current_state.n_lines
             communications_log["t_spins"] = self.current_state.t_spins
             communications_log["combo"] = str(int(self.current_state.combo))
-           
+             
             self.state_counter = 0
             self.restart()
 
             while True:
+                if communications_log["shutdown_game"] == "1":
+                    sys.exit()
                 if communications_log["finished_restart"] == "1":
                     break
                 time.sleep(0.1)

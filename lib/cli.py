@@ -23,4 +23,9 @@ def parse_args():
         type=int,
         help="seed for the Tetris game. If it is supplied all the games will be played with the same seed, i.e. the same sequence of pieces",
     )
+    parser.add_argument(
+        "--continuous",
+        action="store_true",
+        help="if supplied, the script runs new games until it is stopped manually",
+    )
     return parser.parse_args()

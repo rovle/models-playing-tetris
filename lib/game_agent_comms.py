@@ -25,7 +25,8 @@ class CommunicationsLog:
                 "pieces_count" : None,
                 "n_lines": None,
                 "t_spins": None,
-                "combo": None
+                "combo": None,
+                "shutdown_game": None
             },
             fp)
         self.log = {}
