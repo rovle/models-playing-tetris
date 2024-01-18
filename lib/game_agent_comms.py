@@ -26,6 +26,7 @@ class CommunicationsLog:
                 "n_lines": None,
                 "t_spins": None,
                 "combo": None,
+                "endless" : False,
                 "shutdown_game": None
             },
             fp)

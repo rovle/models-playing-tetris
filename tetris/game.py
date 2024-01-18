@@ -612,18 +612,18 @@ class Game:
             communications_log["n_lines"] = self.current_state.n_lines
             communications_log["t_spins"] = self.current_state.t_spins
             communications_log["combo"] = str(int(self.current_state.combo))
-             
-            self.state_counter = 0
-            self.restart()
 
+            self.state_counter = -1
+            self.restart()
+             
             while True:
                 if communications_log["shutdown_game"] == "1":
                     sys.exit()
-                if communications_log["finished_restart"] == "1":
+                if communications_log["finished_restart"] == "1" and communications_log["endless"]:
                     break
                 time.sleep(0.1)
+            
             communications_log["finished_restart"] = "0"
-
             return self.get_state_input(self.current_state), 0, True, False
 
         success = False
@@ -741,7 +741,6 @@ class Game:
             else:
                 continue
             path = f"games_archive/game_{game_number}"
-
             if self.state_counter == 0:
                 capture_area = pygame.Rect(screen_x, screen_y, screen_width, screen_height)
                 screen_surface = pygame.display.get_surface()
@@ -750,7 +749,6 @@ class Game:
                 pygame.image.save(subsurface, f"{path}/screens/screenshot_{self.state_counter}.png")
                 self.state_counter += 1
                 self.is_reset = False
-            # here goes the file reading stuff--
             if os.path.exists(f"{path}/actions/action_{self.state_counter}"):
                 with open(f"{path}/actions/action_{self.state_counter}") as f:
                     action = f.readline()

@@ -46,12 +46,13 @@ def handle_game_over(game_number, state_counter, args):
     save_info(game_number, args)
     create_video(game_number)
     communications_log = CommunicationsLog()
-    if not args.continuous:
+    if not args.endless:
         communications_log["shutdown_game"] = "1"
         exit()
     state_counter = 1
     game_number += 1
     create_new_game_folder(game_number)
+    time.sleep(1)
     communications_log["finished_restart"] = "1"
     communications_log["game_over"] = "0"
     return state_counter, game_number
@@ -74,6 +75,8 @@ def test_model(args):
     game_number = get_next_game_number()
     create_new_game_folder(game_number)
     communications_log = CommunicationsLog(restart_log=True)
+    if args.endless:
+        communications_log["endless"] = True
     if args.tetris_seed:
         communications_log["tetris_seed"] = int(args.tetris_seed)
     state_counter = 1

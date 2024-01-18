@@ -25,7 +25,7 @@ Run main.py and provide the desired arguments.
 Usage:
 
 ```bash
-main.py [-h] [--model MODEL] [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME] [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED]
+usage: main.py [-h] [--model MODEL] [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME] [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED] [--endless]
 
 options:
   -h, --help            show this help message and exit
@@ -35,9 +35,10 @@ options:
   --prompt_name PROMPT_NAME
                         name of the prompt to use. See possible values in assets/prompts.json
   --example_ids [EXAMPLE_IDS ...]
-                        list of IDs of examples for few-shot prompting. See possible values in assets/examples.json
+                        optional list of IDs of examples for few-shot prompting. See possible values in assets/examples.json
   --tetris_seed TETRIS_SEED
                         seed for the Tetris game. If it is supplied all the games will be played with the same seed, i.e. the same sequence of pieces
+  --endless             if supplied, the script runs new games until stopped manually
 ```
 
 Example command:
