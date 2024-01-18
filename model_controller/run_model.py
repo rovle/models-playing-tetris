@@ -109,3 +109,4 @@ def test_model(args):
                 state_counter, game_number = handle_game_over(
                         game_number, state_counter, args
                     )
+                break
