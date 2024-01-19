@@ -24,7 +24,7 @@ Run main.py and provide the desired arguments.
 
 Usage:
 
-```bash
+```shell
 usage: main.py [-h] [--model MODEL] [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME] [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED] [--endless]
 
 options:
@@ -43,7 +43,7 @@ options:
 
 Example command:
 
-```bash
+```shell
 python main.py --model gemini-pro-vision --temperature 0.4 --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
 ```
 
@@ -53,7 +53,7 @@ Run lib/games_analysis.py and provide the desired arguments.
 
 Usage:
 
-```bash
+```shell
 games_analysis.py [-h] [--model MODEL] [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME] [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED]
 
 options:
