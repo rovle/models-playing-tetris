@@ -6,7 +6,7 @@ def parse_args():
         "--model", help="name of the model. Possible values: gemini-pro-vision, gpt-4-vision-preview, llava-13b, random, manual", default="gemini-pro-vision"
     )
     parser.add_argument(
-        "--temperature", type=float, help="temperature for the model. Default is 0.4", default=0.4
+        "--temperature", type=float, help="temperature with which to sample the model. Default is 0.4", default=0.4
     )
     parser.add_argument(
         "--prompt_name", help="name of the prompt to use. See possible values in assets/prompts.json"
