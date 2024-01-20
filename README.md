@@ -71,14 +71,15 @@ Run lib/games_analysis.py and provide argument on which values to filter the gam
 Usage:
 
 ```console
-games_analysis.py [-h] [--model MODEL] [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME] [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED]
+usage: games_analysis.py [-h] [--model MODEL] [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME] [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED]
 
 options:
-  -h, --help
+  -h, --help            show this help message and exit
   --model MODEL
   --temperature TEMPERATURE
   --prompt_name PROMPT_NAME
   --example_ids [EXAMPLE_IDS ...]
+                        -1 to specify games without examples
   --tetris_seed TETRIS_SEED
 ```
 

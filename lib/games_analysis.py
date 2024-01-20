@@ -14,7 +14,7 @@ for game_folder in os.listdir("games_archive"):
         all_jsons.append(info)
     except FileNotFoundError:
         continue
-    
+
 
 @dataclass
 class TetrisData:
@@ -48,7 +48,7 @@ class TetrisData:
     @staticmethod
     def average_pieces_count(records: List['TetrisData']) -> float:
         average = sum(record.pieces_count for record in records) / len(records) if records else 0
-        return round(average, 2) 
+        return round(average, 2)
 
     @staticmethod
     def confidence_interval_95(records: List['TetrisData'],
@@ -75,7 +75,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model", type=str)
 parser.add_argument("--temperature", type=float)
 parser.add_argument("--prompt_name", type=str)
-parser.add_argument("--example_ids", nargs="*", type=int)
+parser.add_argument("--example_ids", nargs="*", type=int, help="-1 to specify games without examples")
 parser.add_argument("--tetris_seed", type=int)
 args = parser.parse_args()
 
@@ -89,28 +89,36 @@ def model_filter(record):
         return False
     if args.prompt_name and record.prompt_name != args.prompt_name:
         return False
-    if args.example_ids and record.example_ids != args.example_ids:
+    if args.example_ids == []:
+        if record.example_ids:
+            return False
+    elif args.example_ids is not None and record.example_ids != args.example_ids:
         return False
     if args.tetris_seed and record.tetris_seed != args.tetris_seed:
         return False
     return True
 
 if __name__ == "__main__":
+    print(tetris_records)
+    if args.example_ids == [-1]:
+        args.example_ids = []
     filtered_records = TetrisData.filter_records(tetris_records, model_filter)
 
     print("Data for records with the following parameters:")
     # check if each argument is not None, and print it
     if args.model:
         print(f"Model: {args.model}")
-    if args.temperature:    
+    if args.temperature:
         print(f"Temperature: {args.temperature}")
     if args.prompt_name:
         print(f"Prompt Name: {args.prompt_name}")
-    if args.example_ids:
+    if args.example_ids or args.example_ids == []:
         print(f"Example IDs: {args.example_ids}")
     if args.tetris_seed:
         print(f"Tetris Seed: {args.tetris_seed}")
-     
+
+    if args.example_ids == [-1]:
+        args.example_ids = []
     avg_pieces_count = TetrisData.average_pieces_count(filtered_records)
     print(f"Average Pieces Count (Filtered): {avg_pieces_count}")
 
@@ -124,13 +132,13 @@ if __name__ == "__main__":
                                         'example_ids', 'tetris_seed']
                           if not getattr(args, field)]
     grouped_records = TetrisData.group_by_fields(filtered_records, unspecified_fields)
-    
+
     average_scores_by_group = {key: (TetrisData.average_pieces_count(group), len(group))
                                for key, group in grouped_records.items()}
 
     # Sort the groups by average score in descending order
     sorted_average_scores = sorted(average_scores_by_group.items(), key=lambda x: x[1], reverse=True)
-    
+
     for key, (avg_score, count) in sorted_average_scores:
         labeled_key = ", ".join(f"{field}: {value}" for field, value in zip(unspecified_fields, key))
         print(f"Group ({labeled_key}): Average Score = {avg_score}, Number of Games = {count}")
