@@ -75,7 +75,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model", type=str)
 parser.add_argument("--temperature", type=float)
 parser.add_argument("--prompt_name", type=str)
-parser.add_argument("--example_ids", nargs="*")
+parser.add_argument("--example_ids", nargs="*", type=int)
 parser.add_argument("--tetris_seed", type=int)
 args = parser.parse_args()
 
