@@ -99,7 +99,6 @@ def model_filter(record):
     return True
 
 if __name__ == "__main__":
-    print(tetris_records)
     if args.example_ids == [-1]:
         args.example_ids = []
     filtered_records = TetrisData.filter_records(tetris_records, model_filter)
