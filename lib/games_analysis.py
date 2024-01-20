@@ -52,7 +52,7 @@ class TetrisData:
     
     def average_lines_cleared(records: List['TetrisData']) -> float:
         average = sum(record.lines_cleared for record in records) / len(records) if records else 0
-        return round(average, 2)
+        return average
 
     @staticmethod
     def confidence_interval_95(records: List['TetrisData'],
