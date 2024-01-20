@@ -613,7 +613,7 @@ class Game:
             communications_log["t_spins"] = self.current_state.t_spins
             communications_log["combo"] = str(int(self.current_state.combo))
 
-            self.state_counter = -1
+            self.state_counter = 0
             self.restart()
              
             while True:

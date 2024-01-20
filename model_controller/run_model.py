@@ -28,7 +28,7 @@ def get_model_response(model, prompt_name, example_ids, image_path=None):
                 print(response_text)
                 print(f"Invalid JSON {retry_count}/50, retrying...")
                 continue
-        except (InternalServerError, DeadlineExceeded) as e:
+        except (InternalServerError, DeadlineExceeded, KeyError) as e:
             retry_count += 1
             print(f"Error: ${e}. {retry_count}/50, retrying...")
             time.sleep(1)
