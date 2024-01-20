@@ -19,7 +19,7 @@ During our testing we observed that prompts significantly affect how well the mo
 1) The best solution received by the end of February 2024, tested on at least 10 games, which beats our prompting setup for either of those two models by at least 10 pieces placed.
 2) If no solutions are sent by the end of February 2024, then the first solution sent to us after February 2024 which beats our best prompt by at least 10 pieces for one of those two models.
 
-For more details on this bounty, see [Bounty details](bounty_details.md).
+For more details on the bounty, see [Bounty details](bounty_details.md).
 
 # Usage
 
@@ -85,18 +85,18 @@ options:
   --tetris_seed TETRIS_SEED
 ```
 
-For example, `python lib/games_analysis.py --model gpt-4-vision-preview` returns the statistics — average amount pieces placed, average amount of lines cleared, etc. – for all the finished games with `gpt-4-vision-preview` model. It also shows more detailed breakdown of all the argument permutations that were passed alongside with `model gpt-4-vision-preview`.
+For example, `python lib/games_analysis.py --model gpt-4-vision-preview` returns the statistics — average amount pieces placed, average amount of lines cleared, etc. – for all the finished games with `gpt-4-vision-preview` model. It also shows more detailed breakdown of all the argument permutations that were passed alongside `model gpt-4-vision-preview`.
 
 ## Adding your own prompts
 
-New prompts should be added as a dictionary entry in the `assets/prompts.json` JSON/dictionary. Specifically you should add a new key, value pair:
+New prompts should be added as a dictionary entry in the `assets/prompts.json`. Specifically you should add a new key, value pair:
 ```json
 "your_prompt_name": {
-    "action_type": "single", // or "multiple"
+    "action_type": "single/multiple",
     "instructions": "your_prompt_here"
 }
 ```
-Where "action_type" denotes whether the prompt allows for more than one action to be supplied per model's output. After adding that, you can run
+Where "action_type" denotes whether the prompt does allow for more than one action to be supplied per model's output (`multiple`) or not (`single`). After adding that, you can run
 ```console
 python main.py --prompt_name your_prompt_name
 ```
