@@ -49,6 +49,10 @@ class TetrisData:
     def average_pieces_count(records: List['TetrisData']) -> float:
         average = sum(record.pieces_count for record in records) / len(records) if records else 0
         return round(average, 2)
+    
+    def average_lines_cleared(records: List['TetrisData']) -> float:
+        average = sum(record.lines_cleared for record in records) / len(records) if records else 0
+        return round(average, 2)
 
     @staticmethod
     def confidence_interval_95(records: List['TetrisData'],
@@ -116,10 +120,11 @@ if __name__ == "__main__":
     if args.tetris_seed:
         print(f"Tetris Seed: {args.tetris_seed}")
 
-    if args.example_ids == [-1]:
-        args.example_ids = []
+    avg_lines_cleared = TetrisData.average_lines_cleared(filtered_records)
+    print(f"Average Lines Cleared: {avg_lines_cleared}")
+
     avg_pieces_count = TetrisData.average_pieces_count(filtered_records)
-    print(f"Average Pieces Count (Filtered): {avg_pieces_count}")
+    print(f"Average Pieces Count: {avg_pieces_count}")
 
     ci_pieces_count = TetrisData.confidence_interval_95(filtered_records, 'pieces_count')
     print(f"95% Confidence Interval for Pieces Count: {ci_pieces_count}")
