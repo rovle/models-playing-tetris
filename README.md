@@ -2,7 +2,7 @@
 <p align="center">
     <img src="https://github.com/rovle/tetris-ai/raw/main/.gfx/logo_original.png" alt="logo"/>
 </p>
-__Benchmarking various multimodal LLMs' ability to play Tetris.__
+*Benchmarking various multimodal LLMs' ability to play Tetris.*
 
 [video here 2x2 maybe?]
 
