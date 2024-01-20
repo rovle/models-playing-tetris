@@ -1,6 +1,6 @@
 import os
 import time
-from google.api_core.exceptions import InternalServerError
+from google.api_core.exceptions import InternalServerError, DeadlineExceeded
 
 from lib.json_utils import check_if_valid_json
 from lib.video_creation import create_video
@@ -28,9 +28,9 @@ def get_model_response(model, prompt_name, example_ids, image_path=None):
                 print(response_text)
                 print(f"Invalid JSON {retry_count}/50, retrying...")
                 continue
-        except InternalServerError:
+        except (InternalServerError, DeadlineExceeded) as e:
             retry_count += 1
-            print(f"Internal server error {retry_count}/50, retrying...")
+            print(f"Error: ${e}. {retry_count}/50, retrying...")
             time.sleep(1)
             continue
 
