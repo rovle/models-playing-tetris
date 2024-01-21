@@ -9,15 +9,17 @@
 
 {video here 2x2 maybe?}
 
-Can the current LLMs successfully play Tetris? We test GPT-4V, Gemini Pro Vision, and LLava 13b on this task. The project includes the functionality for techniques such as few-shot and chain of thought prompting. For more details on our results see this [Twitter thread] or [LessWrong] post.
+Can the current multimodal LLMs successfully play Tetris? We test GPT-4V, Gemini Pro Vision, and LLava 13b, with few-shot and chain of thought prompting, on this task. See a short summary of the results in the table below; for more details see the [Twitter thread] or the [Lesswrong post].
+
+[table of results]
 
 ## The bounty for a better prompt setup
 
-During our testing we have observed that there is a great influence of prompts on how well the models play the game; so that our limited efforts at prompt engineering don't end up being the last word on, we're announcing a **bounty** for the best prompt which beats our model. Specifically, our best prompting setup for Gemini Pro Vision achieves XX placed pieces on average, and the best prompting setup for GPT-4V achieves YY placed pieces on average. We pledge to award min(1.5*{number of pieces the method achieves}, 100) USD to
-1) The best solution (& testing details), which beats our prompting setup for either of those two models, in terms of average pieces placed per game, by the end of February 2024.
-2) If no solutions are sent by the end of February 2024, then the best solution sent to us after February 2024 which beats our best prompt for of those two models.
+During our testing we observed that prompts significantly affect how well the model plays the game; having had only limited time and energy to prompt-craft, and not wanting our limited efforts to be the last word on models playing Tetris, we're announcing a **bounty** for the best prompt which beats our best prompt. Specifically, our best prompting setup for Gemini Pro Vision achieves XX placed pieces on average, and the best prompting setup for GPT-4V achieves YY placed pieces on average, and thus we pledge to award min(2*{number of pieces the method achieves}, 100) USD to
+1) The best solution received by the end of February 2024, tested on at least 10 games, which beats our prompting setup for either of those two models by at least 10 pieces placed.
+2) If no solutions are sent by the end of February 2024, then the first solution sent to us after February 2024 which beats our best prompt by at least 10 pieces for one of those two models.
 
-For more details on this bounty, see [Bounty details](bounty_details.md).
+For more details on the bounty, see [Bounty details](bounty_details.md).
 
 # Usage
 
@@ -83,18 +85,18 @@ options:
   --tetris_seed TETRIS_SEED
 ```
 
-For example, `python lib/games_analysis.py --model gpt-4-vision-preview` returns the statistics — average amount pieces placed, average amount of lines cleared, etc. – for all the finished games with `gpt-4-vision-preview` model. It also shows more detailed breakdown of all the argument permutations that were passed alongside with `model gpt-4-vision-preview`.
+For example, `python lib/games_analysis.py --model gpt-4-vision-preview` returns the statistics — average amount pieces placed, average amount of lines cleared, etc. – for all the finished games with `gpt-4-vision-preview` model. It also shows more detailed breakdown of all the argument permutations that were passed alongside `model gpt-4-vision-preview`.
 
 ## Adding your own prompts
 
-New prompts should be added as a dictionary entry in the `assets/prompts.json` JSON/dictionary. Specifically you should add a new key, value pair:
+New prompts should be added as a dictionary entry in the `assets/prompts.json`. Specifically you should add a new key, value pair:
 ```json
 "your_prompt_name": {
-    "action_type": "single", // or "multiple"
+    "action_type": "single/multiple",
     "instructions": "your_prompt_here"
 }
 ```
-Where "action_type" denotes whether the prompt allows for more than one action to be supplied per model's output. After adding that, you can run
+Where "action_type" denotes whether the prompt does allow for more than one action to be supplied per model's output (`multiple`) or not (`single`). After adding that, you can run
 ```console
 python main.py --prompt_name your_prompt_name
 ```
