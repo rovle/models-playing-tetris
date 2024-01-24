@@ -15,7 +15,7 @@ Can the current multimodal LLMs successfully play Tetris? We test GPT-4V, Gemini
 
 ## The bounty for a better prompt setup
 
-During our testing we observed that prompts significantly affect how well the model plays the game; having had only limited time and energy to prompt-craft, and not wanting our limited efforts to be the last word on models playing Tetris, we're announcing a **bounty** for the best prompt which beats our best prompt. Specifically, our best prompting setup for Gemini Pro Vision achieves XX placed pieces on average, and the best prompting setup for GPT-4V achieves YY placed pieces on average, and thus we pledge to award min(2*{number of pieces the method achieves}, 100) USD to
+During our testing we observed that prompts significantly affect how well the model plays the game; having had only limited time and energy to prompt-craft, and not wanting our limited efforts to be the last word on models playing Tetris, we're announcing a **bounty** for the best prompt which beats our best prompt. Specifically, our best prompting setup for Gemini Pro Vision achieves XX placed pieces on average, and the best prompting setup for GPT-4V achieves YY placed pieces on average, and thus we pledge to award min(2*{number of pieces the method achieves}, 200) USD to
 1) The best solution received by the end of February 2024, tested on at least 10 games, which beats our prompting setup for either of those two models by at least 10 pieces placed.
 2) If no solutions are sent by the end of February 2024, then the first solution sent to us after February 2024 which beats our best prompt by at least 10 pieces for one of those two models.
 
@@ -106,6 +106,9 @@ to run games with your prompt. Do note that our parsing functions expects the ac
 
 (Supported for `gpt-4-vision-preview` and `gemini-pro-vision`.)
 
-If you want to add an `(image, response)` pair as an example for few-shot prompting you should put the image into `assets/images` and add a dictionary entry to `examples.json`. Our current examples are optimized for being parsed as JSONs and added to the text in that way. See `examples.json` and `generate_response` methods for the appropriate model in `model_controller/models.py`.
+If you want to add an `(image, response)` pair as an example for few-shot prompting you should put the image into `assets/images` and add a dictionary entry to `examples.json`. Our current examples are optimized for being parsed as JSONs and added to the text in that way. See `examples.json` and `generate_response` method for the appropriate model in `model_controller/models.py`.
 
+### The Tetris game
+
+The implementation of Tetris used was originally made by [zeroize318](https://github.com/zeroize318) and it can be found here [here](https://github.com/zeroize318/tetris_ai).
 
