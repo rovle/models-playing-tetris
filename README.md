@@ -108,7 +108,7 @@ to run games with your prompt. Do note that our parsing functions expects the ac
 
 If you want to add an `(image, response)` pair as an example for few-shot prompting you should put the image into `assets/images` and add a dictionary entry to `examples.json`. Our current examples are optimized for being parsed as JSONs and added to the text in that way. See `examples.json` and `generate_response` method for the appropriate model in `model_controller/models.py`.
 
-### The Tetris game
+## The Tetris game
 
 The implementation of Tetris used was originally made by [zeroize318](https://github.com/zeroize318) and it can be found here [here](https://github.com/zeroize318/tetris_ai).
 
