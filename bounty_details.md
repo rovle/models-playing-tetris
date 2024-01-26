@@ -1,7 +1,7 @@
 The bounty to the amount of min(2*{number of pieces the method achieves}, 200) USD will be awarded to
 
-1) The best solution (in terms of average pieces placed) received by the end of February 2024, tested on at least 10 games, which beats our prompting setup for either of those two models by at least 10 pieces placed.
-2) If no solutions are sent by the end of February 2024, then the first solution sent to us after February 2024 which beats our best prompt by at least 10 pieces for one of those two models.
+1) The best solution (in terms of average pieces placed) received by the end of February 2024, tested on at least 10 games, which beats our prompting setup for either of those two models by at least 9 pieces more placed on average.
+2) If no solutions are sent by the end of February 2024, then the first solution sent to us after February 2024 which satisfies the above requirement.
 
 Some additional notes regarding the bounty:
 - We expect to be able to reproduce your solution; if we're unable to obtain similar results to your reported ones, the solution will not count. Getting slightly worse results than you reported is okay.
