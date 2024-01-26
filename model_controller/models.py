@@ -35,7 +35,7 @@ class GeminiProVision(BaseModel):
         super().__init__(model_name, temperature)
         genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
         self.model = genai.GenerativeModel(model_name)
-    
+
     def generate_response(self, prompt_name, example_ids, image_path):
         prompt = prompts.get(prompt_name, {})
         instructions = prompt.get("instructions", None)
@@ -150,7 +150,7 @@ class Llava13b(BaseModel):
     def generate_response(self, prompt_name, example_ids, image_path):
         prompt = prompts.get(prompt_name, {})
         instructions = prompt.get("instructions", None)
-        
+
         response = replicate.run(
             self.model,
             input={
@@ -160,7 +160,7 @@ class Llava13b(BaseModel):
         )
         response = list(response)
         response = ''.join(response)
-        
+
         return response
 
 class RandomPlayer(BaseModel):
@@ -188,7 +188,7 @@ def parse_response(prompt_name, response_text):
 
     prompt = prompts.get(prompt_name, {})
     action_type = prompt.get("action_type", None)
-    
+
     stripped_text = response_text[
         response_text.index("{") : (response_text.index("}") + 1)
     ]
