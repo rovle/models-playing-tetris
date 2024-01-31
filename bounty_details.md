@@ -11,3 +11,4 @@ Some additional notes regarding the bounty:
 - Using models other than Gemini Pro Vision or GPT-4V does not count. You should use the API checkpoints we used if they are available (`gemini-pro-vision` and `gpt-4-vision-preview`), but if they're not available then the oldest available checkpoint of these models made available after our tests is fine.
 - Payment options include: BTC/ETH, Paypal, and method in which it's easy to spend money from a credit card to send the money.
 - You can also opt for 125% of the bounty amount to be donated to Long-Term Future Fund instead being transferred to you.
+- The bounty expires at the end of 2024 (Anywhere on Earth).
