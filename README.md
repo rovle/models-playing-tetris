@@ -10,11 +10,23 @@ https://github.com/rovle/models-playing-tetris/assets/29806640/5bc1de42-49c8-4e4
 
 Can the current multimodal LLMs successfully play Tetris? We test GPT-4V, Gemini Pro Vision, and LLava 13b, with few-shot and chain of thought prompting, on this task. See a short summary of the results in the table below; for more details see the [Twitter thread] or the [Lesswrong post].
 
-![gabs_tablica](https://github.com/rovle/models-playing-tetris/assets/29806640/0ddbe745-ba59-4047-a122-d67b1545ec91)
+| Model | Basic prompt | Few-shot (k=2) | Chain of Thought | CoT + Few-shot (k=2) |
+|-------|--------------|----------------|-------------------|----------------------|
+| GPT-4V (single move per screenshot) | 13.2 | * | 13.1 | * |
+| GPT-4V (multiple moves per screenshot) | 19.6 | 16.5 | 20.9 | 21.2 |
+| Gemini Pro Vision (single move per screenshot) | 14.4 | 12.4 | 11.36*** | 16.04 |
+| Gemini Pro Vision (multiple moves per screenshot) | 11.08*** | 19.52 | 11.76 | 19.96 |
+| LLaVA-13b (multiple moves per screenshot) | 8.6*** | ** | 10.7*** | ** |
+
+\*Skipped due to high API costs for single move games.
+
+\**Skipped due to the API we used not supporting multiple images.
+
+\***Random move play yields on average about 11.5 pieces placed.
 
 ## The bounty for a better prompt setup
 
-During our testing we observed that prompts significantly affect how well the model plays the game; having had only limited time and energy to prompt-craft, and not wanting our limited efforts to be the last word on models playing Tetris, we're announcing a **bounty** for the best prompt which beats our best prompt. Specifically, our best prompting setup for Gemini Pro Vision achieves XX placed pieces on average, and the best prompting setup for GPT-4V achieves YY placed pieces on average, and thus we pledge to award min(2*{number of pieces the method achieves}, 200) USD to
+During our testing we observed that prompts significantly affect how well the model plays the game; having had only limited time and energy to prompt-craft, and not wanting our limited efforts to be the last word on models playing Tetris, we're announcing a **bounty** for the best prompt which beats our best prompt. Specifically, our best prompting setup for Gemini Pro Vision achieves 19.96 placed pieces on average, and the best prompting setup for GPT-4V achieves 21.2 placed pieces on average, and thus we pledge to award min(2*{number of pieces the method achieves}, 200) USD to
 1) The best solution received by the end of February 2024, tested on at least 10 games, which beats our prompting setup for either of those two models by at least 10 pieces placed.
 2) If no solutions are sent by the end of February 2024, then the first solution sent to us after February 2024 which beats our best prompt by at least 10 pieces for one of those two models.
 
