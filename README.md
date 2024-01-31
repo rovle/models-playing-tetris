@@ -10,7 +10,7 @@ https://github.com/rovle/models-playing-tetris/assets/29806640/5bc1de42-49c8-4e4
 
 Can the current multimodal LLMs successfully play Tetris? We test GPT-4V, Gemini Pro Vision, and LLava 13b, with few-shot and chain of thought prompting, on this task. See a short summary of the results in the table below; for more details see the [Twitter thread] or the [Lesswrong post].
 
-[table of results]
+![gabs_tablica](https://github.com/rovle/models-playing-tetris/assets/29806640/0ddbe745-ba59-4047-a122-d67b1545ec91)
 
 ## The bounty for a better prompt setup
 
