@@ -6,16 +6,27 @@
 
 *Benchmarking various multimodal LLMs' ability to play Tetris.*
 
-
-{video here 2x2 maybe?}
+https://github.com/rovle/models-playing-tetris/assets/29806640/5bc1de42-49c8-4e4c-9676-0025536de99d
 
 Can the current multimodal LLMs successfully play Tetris? We test GPT-4V, Gemini Pro Vision, and LLava 13b, with few-shot and chain of thought prompting, on this task. See a short summary of the results in the table below; for more details see the [Twitter thread] or the [Lesswrong post].
 
-[table of results]
+| Model | Basic prompt | Few-shot (k=2) | Chain of Thought | CoT + Few-shot (k=2) |
+|-------|--------------|----------------|-------------------|----------------------|
+| GPT-4V (single move per screenshot) | 13.2 | * | 13.1 | * |
+| GPT-4V (multiple moves per screenshot) | 19.6 | 16.5 | 20.9 | 21.2 |
+| Gemini Pro Vision (single move per screenshot) | 14.4 | 12.4 | 11.36*** | 16.04 |
+| Gemini Pro Vision (multiple moves per screenshot) | 11.08*** | 19.52 | 11.76 | 19.96 |
+| LLaVA-13b (multiple moves per screenshot) | 8.6*** | ** | 10.7*** | ** |
+
+\*Skipped due to high API costs for single move games.
+
+\**Skipped due to the API we used not supporting multiple images.
+
+\***Random move play yields on average about 11.5 pieces placed.
 
 ## The bounty for a better prompt setup
 
-During our testing we observed that prompts significantly affect how well the model plays the game; having had only limited time and energy to prompt-craft, and not wanting our limited efforts to be the last word on models playing Tetris, we're announcing a **bounty** for the best prompt which beats our best prompt. Specifically, our best prompting setup for Gemini Pro Vision achieves XX placed pieces on average, and the best prompting setup for GPT-4V achieves YY placed pieces on average, and thus we pledge to award min(2*{number of pieces the method achieves}, 100) USD to
+During our testing we observed that prompts significantly affect how well the model plays the game; having had only limited time and energy to prompt-craft, and not wanting our limited efforts to be the last word on models playing Tetris, we're announcing a **bounty** for the best prompt which beats our best prompt. Specifically, our best prompting setup for Gemini Pro Vision achieves 19.96 placed pieces on average, and the best prompting setup for GPT-4V achieves 21.2 placed pieces on average, and thus we pledge to award min(2*{number of pieces the method achieves}, 200) USD to
 1) The best solution received by the end of February 2024, tested on at least 10 games, which beats our prompting setup for either of those two models by at least 10 pieces placed.
 2) If no solutions are sent by the end of February 2024, then the first solution sent to us after February 2024 which beats our best prompt by at least 10 pieces for one of those two models.
 
@@ -96,16 +107,19 @@ New prompts should be added as a dictionary entry in the `assets/prompts.json`. 
     "instructions": "your_prompt_here"
 }
 ```
-Where "action_type" denotes whether the prompt does allow for more than one action to be supplied per model's output (`multiple`) or not (`single`). After adding that, you can run
+Where "action_type" denotes whether the prompt allows for more than one action to be supplied per model's output (`multiple`) or not (`single`). After adding that, you can run
 ```console
 python main.py --prompt_name your_prompt_name
 ```
-to run games with your prompt. Do note that our parsing functions expects the action(s) to be returned in a JSON-like object within the model's outputs, so in particular it expects a parseable JSON enclosed within "{" and "}", with a key "action" or "actions", inside the model's output. You should therefore either **specify this in the prompt** (see the existing prompts for examples), or else rewrite the parsing function (``parse response` in `model_controller/models.py`) to match your prompting setup.
+to run games with your prompt. Do note that our parsing functions expects the action(s) to be returned in a JSON-like object within the model's outputs, so in particular it expects a parseable JSON enclosed within "{" and "}", with a key "action" or "actions" and a string value containing either one action, or comma-separated actions, respectively, inside the model's output. You should therefore either **specify this in the prompt** (see the existing prompts for examples), or else rewrite the parsing function (`parse response` in `model_controller/models.py`) to match your prompting setup.
 
 ## Adding examples for few-shot prompting
 
 (Supported for `gpt-4-vision-preview` and `gemini-pro-vision`.)
 
-If you want to add an `(image, response)` pair as an example for few-shot prompting you should put the image into `assets/images` and add a dictionary entry to `examples.json`. Our current examples are optimized for being parsed as JSONs and added to the text in that way. See `examples.json` and `generate_response` methods for the appropriate model in `model_controller/models.py`.
+If you want to add an `(image, response)` pair as an example for few-shot prompting you should put the image into `assets/images` and add a dictionary entry to `examples.json`. Our current examples are optimized for being parsed as JSONs and added to the text in that way. See `examples.json` and `generate_response` method for the appropriate model in `model_controller/models.py`.
 
+## The Tetris game
+
+The implementation of Tetris used was originally made by [zeroize318](https://github.com/zeroize318) and it can be found here [here](https://github.com/zeroize318/tetris_ai).
 
