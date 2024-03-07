@@ -1,6 +1,6 @@
 numpy==1.26.2
 pygame==2.5.2
-Pillow==10.1.0
+Pillow==10.2.0
 google-generativeai==0.3.2
 python-dotenv==1.0.0
 opencv-python==4.9.0.80
