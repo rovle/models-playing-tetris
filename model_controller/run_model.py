@@ -1,6 +1,7 @@
 import os
 import time
 from google.api_core.exceptions import InternalServerError
+from anthropic import InternalServerError as anthropic_ISE
 import httpx
 
 from lib.json_utils import check_if_valid_json
@@ -29,7 +30,8 @@ def get_model_response(model, prompt_name, example_ids, image_path=None):
                 print(response_text)
                 print(f"Invalid JSON {retry_count}/50, retrying...")
                 continue
-        except (InternalServerError, KeyError, httpx.ReadTimeout) as e:
+        except (anthropic_ISE,
+                InternalServerError, KeyError, httpx.ReadTimeout) as e:
             retry_count += 1
             print(f"Caught error {e}, {retry_count}/50; retrying...")
             time.sleep(1)

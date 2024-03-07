@@ -5,3 +5,7 @@ google-generativeai==0.3.2
 python-dotenv==1.0.0
 opencv-python==4.9.0.80
 replicate
+anthropic
+google-cloud-core
+google-cloud
+httpx

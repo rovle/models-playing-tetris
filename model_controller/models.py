@@ -163,6 +163,40 @@ class Llava13b(BaseModel):
 
         return response
 
+class Claude3(BaseModel):
+    def __init__(self, model_name, temperature):
+        super().__init__(model_name, temperature)
+        import anthropic
+        
+        self.client = anthropic.Client(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    
+    def generate_response(self, prompt_name, example_ids, image_path):
+        prompt = prompts.get(prompt_name, {})
+        instructions = prompt.get("instructions", None)
+        
+        response = self.client.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=3000,
+            messages=[
+                {"role": "user",
+                 "content":
+                     [
+                    {"type": "text", "text": instructions},
+                    {"type": "image", "source":
+                        {"type": "base64",
+                         "media_type": "image/png",
+                         "data": img_transform.encode_image(image_path)}
+                    }
+                    ]
+                 },
+            ]
+        )
+        #response = response.model_dump_json()
+        #print(response)
+        response_text = response.content[0].text
+        print(response_text)
+        return response_text
+
 class RandomPlayer(BaseModel):
     def generate_response(self, prompt_name, example_ids, image_path):
         actions = ["left", "right", "down", "drop", "turn right", "turn left"]
@@ -179,7 +213,8 @@ def get_model(model_name, temperature):
         "gpt-4-vision-preview": Gpt4VisionPreview,
         "llava-13b": Llava13b,
         "random": RandomPlayer,
-        "manual": ManualPlayer
+        "manual": ManualPlayer,
+        "claude3": Claude3
     }
     return models.get(model_name)(model_name, temperature)
 
