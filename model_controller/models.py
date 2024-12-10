@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from PIL import Image
 import google.generativeai as genai
+import anthropic
 import replicate
 
 import lib.image_transformation as img_transform
@@ -30,7 +31,7 @@ class BaseModel(ABC):
         pass
 
 
-class GeminiProVision(BaseModel):
+class Gemini(BaseModel):
     def __init__(self, model_name, temperature):
         super().__init__(model_name, temperature)
         genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -45,7 +46,9 @@ class GeminiProVision(BaseModel):
         example_imgs = []
         for example in examples:
             if example["id"] in example_ids:
-                example_dict = {k: v for i, (k, v) in enumerate(example.items()) if i > 1}
+                example_dict = {
+                    k: v for i, (k, v) in enumerate(example.items()) if i > 1
+                }
                 example_responses.append(example_dict)
                 example_imgs.append(Image.open(example["image_path"]))
 
@@ -77,11 +80,12 @@ class GeminiProVision(BaseModel):
 
         return response.text
 
-class Gpt4VisionPreview(BaseModel):
+
+class OpenAI(BaseModel):
     def __init__(self, model_name, temperature):
         super().__init__(model_name, temperature)
         self.api_key = os.environ.get("OPENAI_API_KEY")
-        self.model = "gpt-4-vision-preview"
+        self.model = model_name
 
     def generate_response(self, prompt_name, example_ids, image_path):
         prompt = prompts.get(prompt_name, {})
@@ -92,7 +96,9 @@ class Gpt4VisionPreview(BaseModel):
         example_imgs = []
         for example in examples:
             if example["id"] in example_ids:
-                example_dict = {k: v for i, (k, v) in enumerate(example.items()) if i > 1}
+                example_dict = {
+                    k: v for i, (k, v) in enumerate(example.items()) if i > 1
+                }
                 example_responses.append(example_dict)
                 example_imgs.append(img_transform.encode_image(example["image_path"]))
 
@@ -101,13 +107,19 @@ class Gpt4VisionPreview(BaseModel):
         example_images_and_responses = []
         for img, response in zip(example_imgs, example_responses):
             example_images_and_responses.append(
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img}"}}
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/png;base64,{img}"},
+                }
             )
             example_images_and_responses.append({"type": "text", "text": response})
 
         current_board_img = img_transform.encode_image(image_path)
 
-        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"}
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}",
+        }
         payload = {
             "model": "gpt-4o",
             "messages": [
@@ -137,7 +149,6 @@ class Gpt4VisionPreview(BaseModel):
         )
 
         response = response.json()
-        print(response)
         response_text = response["choices"][0]["message"]["content"]
         return response_text
 
@@ -153,54 +164,52 @@ class Llava13b(BaseModel):
 
         response = replicate.run(
             self.model,
-            input={
-                "prompt": instructions,
-                "image": open(image_path, "rb")
-                },
+            input={"prompt": instructions, "image": open(image_path, "rb")},
         )
         response = list(response)
-        response = ''.join(response)
-
+        response = "".join(response)
         return response
 
-class Claude3(BaseModel):
+
+class Anthropic(BaseModel):
     def __init__(self, model_name, temperature):
         super().__init__(model_name, temperature)
-        import anthropic
-        
+
         self.client = anthropic.Client(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-    
+
     def generate_response(self, prompt_name, example_ids, image_path):
         prompt = prompts.get(prompt_name, {})
         instructions = prompt.get("instructions", None)
-        
+
         response = self.client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=3000,
             messages=[
-                {"role": "user",
-                 "content":
-                     [
-                    {"type": "text", "text": instructions},
-                    {"type": "image", "source":
-                        {"type": "base64",
-                         "media_type": "image/png",
-                         "data": img_transform.encode_image(image_path)}
-                    }
-                    ]
-                 },
-            ]
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": instructions},
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "image/png",
+                                "data": img_transform.encode_image(image_path),
+                            },
+                        },
+                    ],
+                },
+            ],
         )
-        #response = response.model_dump_json()
-        #print(response)
         response_text = response.content[0].text
-        print(response_text)
         return response_text
+
 
 class RandomPlayer(BaseModel):
     def generate_response(self, prompt_name, example_ids, image_path):
         actions = ["left", "right", "down", "drop", "turn right", "turn left"]
-        return f"{{\"action\": \"{random.choice(actions)}\" }}"
+        return f'{{"action": "{random.choice(actions)}" }}'
+
 
 class ManualPlayer(BaseModel):
     def generate_response(self, prompt_name, example_ids, image_path):
@@ -209,14 +218,25 @@ class ManualPlayer(BaseModel):
 
 def get_model(model_name, temperature):
     models = {
-        "gemini-pro-vision": GeminiProVision,
-        "gpt-4-vision-preview": Gpt4VisionPreview,
+        "gpt-4o": OpenAI,
+        "gpt-4o-2024-11-20": OpenAI,
+        "gpt-4o-mini": OpenAI,
+        "o1": OpenAI,
+        "o1-mini": OpenAI,
+        "claude-3-5-sonnet-latest": Anthropic,
+        "claude-3-opus-latest": Anthropic,
+        "gemini-1.5-pro": Gemini,
+        "gemini-1.5-flash": Gemini,
+        "gemini-exp-1206": Gemini,
+        "gemini-exp-1121": Gemini,
         "llava-13b": Llava13b,
         "random": RandomPlayer,
         "manual": ManualPlayer,
-        "claude3": Claude3
     }
+    model_names = ", ".join(models.keys())
+    print(model_names)
     return models.get(model_name)(model_name, temperature)
+
 
 def parse_response(prompt_name, response_text):
     print(response_text, "\n")
@@ -232,8 +252,11 @@ def parse_response(prompt_name, response_text):
 
     if "," in action:
         action_arr = action.split(",")
-        stripped_action_arr = ( [action_arr[0].strip()] if action_type == 'single'
-                            else [action.strip() for action in action_arr] )
+        stripped_action_arr = (
+            [action_arr[0].strip()]
+            if action_type == "single"
+            else [action.strip() for action in action_arr]
+        )
     else:
         stripped_action_arr = [action]
 

@@ -59,7 +59,7 @@ usage: main.py [-h] [--model MODEL] [--temperature TEMPERATURE] [--prompt_name P
 
 options:
   -h, --help            show this help message and exit
-  --model MODEL         name of the model. Possible values: gemini-pro-vision, gpt-4-vision-preview, llava-13b, random, manual
+  --model MODEL         name of the model. Possible values: gpt-4o, gpt-4o-2024-11-20, gpt-4o-mini, o1, o1-mini, claude-3-5-sonnet-latest, claude-3-opus-latest, gemini-1.5-pro, gemini-1.5-flash, gemini-exp-1206, gemini-exp-1121, llava-13b, random, manual
   --temperature TEMPERATURE
                         temperature with which to sample the model. Default is 0.4
   --prompt_name PROMPT_NAME
@@ -74,7 +74,7 @@ options:
 Example command:
 
 ```console
-python main.py --model gemini-pro-vision --temperature 0.4 --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
+python main.py --model gemini-1.5-flash --temperature 0.4 --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
 ```
 
 ## Evaluating model performance
