@@ -1,8 +1,8 @@
 import os
 import time
-from google.api_core.exceptions import InternalServerError
-from anthropic import InternalServerError as anthropic_ISE
-import httpx
+from datetime import datetime
+from litellm.exceptions import APIError as LiteLLMAPIError, RateLimitError
+from litellm.llms.base_llm.chat.transformation import BaseLLMException
 
 from lib.json_utils import check_if_valid_json
 from lib.video_creation import create_video
@@ -11,9 +11,15 @@ from model_controller.models import get_model, parse_response
 from model_controller.game_archive_manager import (
     create_new_game_folder,
     save_detailed_response,
+    save_structured_response,
     save_action,
     save_info,
 )
+
+
+def tprint(*args, **kwargs):
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"[{timestamp}]", *args, **kwargs)
 
 
 def get_model_response(model, prompt_name, example_ids, image_path=None):
@@ -27,18 +33,17 @@ def get_model_response(model, prompt_name, example_ids, image_path=None):
                 break
             else:
                 retry_count += 1
-                print(response_text)
-                print(f"Invalid JSON {retry_count}/50, retrying...")
+                tprint(response_text)
+                tprint(f"Invalid JSON {retry_count}/50, retrying...")
                 continue
-        except (anthropic_ISE,
-                InternalServerError, KeyError, httpx.ReadTimeout) as e:
+        except (LiteLLMAPIError, RateLimitError, BaseLLMException, KeyError) as e:
             retry_count += 1
-            print(f"Caught error {e}, {retry_count}/50; retrying...")
+            tprint(f"Caught error {e}, {retry_count}/50; retrying...")
             time.sleep(1)
             continue
 
     if retry_count == 50:
-        print("Failed to get a response after 50 retries. :(")
+        tprint("Failed to get a response after 50 retries. :(")
         exit()
 
     action = parse_response(prompt_name, response_text)
@@ -85,18 +90,26 @@ def test_model(args):
     state_counter = 1
 
     if args.model == "manual":
-        print("The possible moves are: left, right, down, drop, rotate clockwise and rotate counterclockwise.")
+        tprint(
+            "The possible moves are: left, right, down, drop, rotate clockwise and rotate counterclockwise."
+        )
 
     while True:
-        image_path = f"games_archive/game_{game_number}/screens/screenshot_{state_counter-1}.png"
+        image_path = (
+            f"games_archive/game_{game_number}/screens/screenshot_{state_counter-1}.png"
+        )
         while not os.path.exists(image_path):
             time.sleep(0.1)
 
-        actions, detailed_response = get_model_response(
+        actions, detailed_response, parsed_response = get_model_response(
             model, args.prompt_name, args.example_ids, image_path=image_path
         )
 
         save_detailed_response(game_number, detailed_response)
+        screenshot_index = state_counter - 1
+        save_structured_response(
+            game_number, screenshot_index, parsed_response, detailed_response
+        )
 
         for action in actions:
             save_action(game_number, state_counter, action)
@@ -110,6 +123,6 @@ def test_model(args):
 
             if communications_log["game_over"] == "1":
                 state_counter, game_number = handle_game_over(
-                        game_number, state_counter, args
-                    )
+                    game_number, state_counter, args
+                )
                 break

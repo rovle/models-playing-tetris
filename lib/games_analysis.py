@@ -16,6 +16,19 @@ for game_folder in os.listdir("games_archive"):
         continue
 
 
+def _parse_info_json(item):
+    """Extract TetrisData fields from info.json, flattening cognitive_analysis."""
+    flat = {k: v for k, v in item.items() if k != "cognitive_analysis"}
+    ca = item.get("cognitive_analysis")
+    if ca:
+        flat["piece_misid_rate"] = ca.get("piece_misid_rate")
+        flat["invalid_move_rate"] = ca.get("invalid_move_rate")
+        flat["plan_action_mismatch_rate"] = ca.get("plan_action_mismatch_rate")
+        flat["line_clear_hallucination_rate"] = ca.get("line_clear_hallucination_rate")
+        flat["avg_move_score"] = ca.get("avg_move_score")
+    return flat
+
+
 @dataclass
 class TetrisData:
     model: str
@@ -29,6 +42,12 @@ class TetrisData:
     n_lines: List[int] = field(default_factory=lambda: [0, 0, 0, 0])
     t_spins: List[int] = field(default_factory=lambda: [0, 0, 0, 0])
     combo: int = 0
+    # Cognitive analysis fields (populated when --save is used with cognitive_analysis.py)
+    piece_misid_rate: Optional[float] = None
+    invalid_move_rate: Optional[float] = None
+    plan_action_mismatch_rate: Optional[float] = None
+    line_clear_hallucination_rate: Optional[float] = None
+    avg_move_score: Optional[float] = None
 
     @staticmethod
     def group_by_fields(records: List['TetrisData'], fields: List[str]) -> dict:
@@ -83,7 +102,7 @@ parser.add_argument("--example_ids", nargs="*", type=int, help="-1 to specify ga
 parser.add_argument("--tetris_seed", type=int)
 args = parser.parse_args()
 
-tetris_records = [TetrisData(**item) for item in all_jsons]
+tetris_records = [TetrisData(**_parse_info_json(item)) for item in all_jsons]
 
 def model_filter(record):
     # for each argument, check if it satisfies the condition
@@ -146,3 +165,23 @@ if __name__ == "__main__":
     for key, (avg_score, count) in sorted_average_scores:
         labeled_key = ", ".join(f"{field}: {value}" for field, value in zip(unspecified_fields, key))
         print(f"Group ({labeled_key}): Average Score = {avg_score}, Number of Games = {count}")
+
+    # Cognitive error analysis stats (if available)
+    cog_records = [r for r in filtered_records if r.piece_misid_rate is not None]
+    if cog_records:
+        n = len(cog_records)
+        print(f"\n--- Cognitive Error Analysis ({n} games with data) ---")
+        for attr, label in [
+            ("piece_misid_rate", "Piece Misidentification Rate"),
+            ("invalid_move_rate", "Invalid Move Rate"),
+            ("plan_action_mismatch_rate", "Plan-Action Mismatch Rate"),
+            ("line_clear_hallucination_rate", "Line Clear Hallucination Rate"),
+            ("avg_move_score", "Avg Move Score"),
+        ]:
+            values = [getattr(r, attr) for r in cog_records if getattr(r, attr) is not None]
+            if values:
+                avg = sum(values) / len(values)
+                if "rate" in attr.lower():
+                    print(f"  {label}: {avg:.1%}")
+                else:
+                    print(f"  {label}: {avg:.1f}")

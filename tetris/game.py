@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 import pygame
 import random
 
@@ -10,6 +11,29 @@ from tetris.tetromino import Tetromino
 from tetris.common import *
 from tetris.gui import Gui
 from lib.game_agent_comms import CommunicationsLog
+
+
+def _save_ground_truth(path, state_counter, gamestate, action_applied=None, action_success=None):
+    gt = {
+        "current_piece": gamestate.tetromino.type_str,
+        "piece_coords": gamestate.tetromino.get_displaced(),
+        "piece_rotation": gamestate.tetromino.rot,
+        "grid": gamestate.grid,
+        "next_pieces": list(gamestate.next),
+        "hold_piece": gamestate.hold_type,
+        "column_heights": gamestate.get_heights(),
+        "hole_depths": gamestate.get_hole_depth(),
+        "score": int(gamestate.score),
+        "lines_cleared": gamestate.lines,
+        "pieces_placed": gamestate.pieces,
+    }
+    if action_applied is not None:
+        gt["action_applied"] = action_applied
+        gt["action_success"] = action_success
+    gt_dir = f"{path}/ground_truth"
+    if os.path.isdir(gt_dir):
+        with open(f"{gt_dir}/state_{state_counter}.json", "w") as fp:
+            json.dump(gt, fp)
 
 INITIAL_EX_WIGHT = 0.0
 SPIN_SHIFT_FOR_NON_T = [(1, 0, 0), (-1, 0, 0),
@@ -747,6 +771,7 @@ class Game:
                 subsurface = screen_surface.subsurface(capture_area)
                 #screen_surface = pygame.display.get_surface()
                 pygame.image.save(subsurface, f"{path}/screens/screenshot_{self.state_counter}.png")
+                _save_ground_truth(path, self.state_counter, self.current_state)
                 self.state_counter += 1
                 self.is_reset = False
             if os.path.exists(f"{path}/actions/action_{self.state_counter}"):
@@ -761,13 +786,15 @@ class Game:
                     action = "turn left"
                 if action.startswith("move"):
                     action = action.split(" ")[1]
-                self.act(action)
+                _, add_score, done, success = self.act(action)
                 self.update_gui()
                 self.gui.redraw()
                 capture_area = pygame.Rect(screen_x, screen_y, screen_width, screen_height)
                 screen_surface = pygame.display.get_surface()
                 subsurface = screen_surface.subsurface(capture_area)
                 pygame.image.save(subsurface, f"{path}/screens/screenshot_{self.state_counter}.png")
+                _save_ground_truth(path, self.state_counter, self.current_state,
+                                   action_applied=action, action_success=success)
                 self.state_counter += 1
 
             for event in pygame.event.get():
@@ -899,7 +926,7 @@ class Game:
             tetro_type_num = Tetromino.type_str_to_num(gamestate.next[i]) - 1
             buffer2[hold_num + (i + hold_num + current_num) * pool_size + tetro_type_num] = 1
 
-        return np.reshape(np.array(buffer1 + buffer2, dtype='int8'), [1, -1])
+        return np.reshape(np.array(buffer1 + buffer2, dtype='int16'), [1, -1])
 
     def get_all_possible_gamestates(self, gamestate=None):
         if gamestate is None:

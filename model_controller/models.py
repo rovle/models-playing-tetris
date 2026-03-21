@@ -1,17 +1,14 @@
-import os
-from abc import ABC, abstractmethod
+import io
+import base64
 import json
-import pdb
-import requests
 import random
+from datetime import datetime
+
+import litellm
 from dotenv import load_dotenv
 
-from PIL import Image
-import google.generativeai as genai
-import anthropic
-import replicate
-
 import lib.image_transformation as img_transform
+from lib.json_utils import extract_json_object
 
 load_dotenv()
 
@@ -21,232 +18,107 @@ with open("assets/examples.json", "r") as example_file:
     examples = json.load(example_file)
 
 
-class BaseModel(ABC):
-    def __init__(self, model_name, temperature):
+class LiteLLMModel:
+    def __init__(self, model_name, temperature=0.4):
         self.model_name = model_name
         self.temperature = temperature
 
-    @abstractmethod
-    def generate_response(self, prompt_name, example_ids, image_path):
-        pass
-
-
-class Gemini(BaseModel):
-    def __init__(self, model_name, temperature):
-        super().__init__(model_name, temperature)
-        genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel(model_name)
-
     def generate_response(self, prompt_name, example_ids, image_path):
         prompt = prompts.get(prompt_name, {})
-        instructions = prompt.get("instructions", None)
-        augmentation = prompt.get("augmentation", None)
+        instructions = prompt.get("instructions", "")
+        augmentation = prompt.get("augmentation")
 
-        example_responses = []
-        example_imgs = []
+        # Build few-shot example messages
+        example_messages = []
         for example in examples:
             if example["id"] in example_ids:
                 example_dict = {
                     k: v for i, (k, v) in enumerate(example.items()) if i > 1
                 }
-                example_responses.append(example_dict)
-                example_imgs.append(Image.open(example["image_path"]))
+                img_b64 = img_transform.encode_image(example["image_path"])
+                example_messages.append({
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Current board:"},
+                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}},
+                    ],
+                })
+                example_messages.append({
+                    "role": "assistant",
+                    "content": json.dumps(example_dict),
+                })
 
-        example_responses = [json.dumps(example) for example in example_responses]
-
-        example_images_and_responses = []
-        for pair in zip(example_imgs, example_responses):
-            example_images_and_responses.extend(pair)
-
-        current_board_img = Image.open(image_path)
+        # Current board image(s) — augmented variants + original
+        image_content = []
         if augmentation:
-            current_board_imgs = img_transform.apply_augmentations(
-                image_path, augmentation
-            ) + [current_board_img]
-        else:
-            current_board_imgs = [current_board_img]
-
-        response = self.model.generate_content(
-            contents=[
-                instructions,
-                *example_images_and_responses,
-                *current_board_imgs,
-            ],
-            generation_config=genai.types.GenerationConfig(
-                temperature=self.temperature,
-            ),
-            stream=False,
+            for pil_img in img_transform.apply_augmentations(image_path, augmentation):
+                buf = io.BytesIO()
+                pil_img.save(buf, format="PNG")
+                aug_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+                image_content.append(
+                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{aug_b64}"}}
+                )
+        current_img_b64 = img_transform.encode_image(image_path)
+        image_content.append(
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{current_img_b64}"}}
         )
 
-        return response.text
+        current_msg = {"role": "user", "content": [
+            {"type": "text", "text": "Current board:"},
+            *image_content,
+        ]}
 
+        messages = [
+            {"role": "system", "content": instructions},
+            *example_messages,
+            current_msg,
+        ]
 
-class OpenAI(BaseModel):
-    def __init__(self, model_name, temperature):
-        super().__init__(model_name, temperature)
-        self.api_key = os.environ.get("OPENAI_API_KEY")
-        self.model = model_name
-
-    def generate_response(self, prompt_name, example_ids, image_path):
-        prompt = prompts.get(prompt_name, {})
-        instructions = prompt.get("instructions", None)
-        agumentation = prompt.get("agumentation", None)
-
-        example_responses = []
-        example_imgs = []
-        for example in examples:
-            if example["id"] in example_ids:
-                example_dict = {
-                    k: v for i, (k, v) in enumerate(example.items()) if i > 1
-                }
-                example_responses.append(example_dict)
-                example_imgs.append(img_transform.encode_image(example["image_path"]))
-
-        example_responses = [json.dumps(example) for example in example_responses]
-
-        example_images_and_responses = []
-        for img, response in zip(example_imgs, example_responses):
-            example_images_and_responses.append(
-                {
-                    "type": "image_url",
-                    "image_url": {"url": f"data:image/png;base64,{img}"},
-                }
-            )
-            example_images_and_responses.append({"type": "text", "text": response})
-
-        current_board_img = img_transform.encode_image(image_path)
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
-        payload = {
-            "model": "gpt-4o",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are `gpt-4o`, the latest OpenAI model that can describe images provided by the user in extreme detail. The user has attached an image to this message for you to analyse, there is MOST DEFINITELY an image attached, you will never reply saying that you cannot see the image because the image is absolutely and always attached to this message.",
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": instructions},
-                        *example_images_and_responses,
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/png;base64,{current_board_img}"
-                            },
-                        },
-                    ],
-                },
-            ],
-            "max_tokens": 3000,
-            "temperature": self.temperature,
-        }
-        response = requests.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
+        response = litellm.completion(
+            model=self.model_name,
+            messages=messages,
+            temperature=self.temperature,
+            num_retries=10,
         )
 
-        response = response.json()
-        response_text = response["choices"][0]["message"]["content"]
-        return response_text
+        return response.choices[0].message.content
 
 
-class Llava13b(BaseModel):
-    def __init__(self, model_name, temperature):
-        super().__init__(model_name, temperature)
-        self.model = "yorickvp/llava-13b:e272157381e2a3bf12df3a8edd1f38d1dbd736bbb7437277c8b34175f8fce358"
+class RandomPlayer:
+    def __init__(self, model_name="random", temperature=0.4):
+        self.model_name = model_name
+        self.temperature = temperature
 
-    def generate_response(self, prompt_name, example_ids, image_path):
-        prompt = prompts.get(prompt_name, {})
-        instructions = prompt.get("instructions", None)
-
-        response = replicate.run(
-            self.model,
-            input={"prompt": instructions, "image": open(image_path, "rb")},
-        )
-        response = list(response)
-        response = "".join(response)
-        return response
-
-
-class Anthropic(BaseModel):
-    def __init__(self, model_name, temperature):
-        super().__init__(model_name, temperature)
-
-        self.client = anthropic.Client(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-
-    def generate_response(self, prompt_name, example_ids, image_path):
-        prompt = prompts.get(prompt_name, {})
-        instructions = prompt.get("instructions", None)
-
-        response = self.client.messages.create(
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=3000,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": instructions},
-                        {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": "image/png",
-                                "data": img_transform.encode_image(image_path),
-                            },
-                        },
-                    ],
-                },
-            ],
-        )
-        response_text = response.content[0].text
-        return response_text
-
-
-class RandomPlayer(BaseModel):
     def generate_response(self, prompt_name, example_ids, image_path):
         actions = ["left", "right", "down", "drop", "turn right", "turn left"]
         return f'{{"action": "{random.choice(actions)}" }}'
 
 
-class ManualPlayer(BaseModel):
+class ManualPlayer:
+    def __init__(self, model_name="manual", temperature=0.4):
+        self.model_name = model_name
+        self.temperature = temperature
+
     def generate_response(self, prompt_name, example_ids, image_path):
         return f"{{\"action\": \"{input('Enter your next move: ')}\" }}"
 
 
-def get_model(model_name, temperature):
-    models = {
-        "gpt-4o": OpenAI,
-        "gpt-4o-2024-11-20": OpenAI,
-        "gpt-4o-mini": OpenAI,
-        "o1": OpenAI,
-        "o1-mini": OpenAI,
-        "claude-3-5-sonnet-latest": Anthropic,
-        "claude-3-opus-latest": Anthropic,
-        "gemini-1.5-pro": Gemini,
-        "gemini-1.5-flash": Gemini,
-        "gemini-exp-1206": Gemini,
-        "gemini-exp-1121": Gemini,
-        "llava-13b": Llava13b,
-        "random": RandomPlayer,
-        "manual": ManualPlayer,
-    }
-    model_names = ", ".join(models.keys())
-    print(model_names)
-    return models.get(model_name)(model_name, temperature)
+def get_model(model_name, temperature=0.4):
+    if model_name == "random":
+        return RandomPlayer(model_name, temperature)
+    if model_name == "manual":
+        return ManualPlayer(model_name, temperature)
+    return LiteLLMModel(model_name, temperature)
 
 
 def parse_response(prompt_name, response_text):
-    print(response_text, "\n")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"[{timestamp}]", response_text, "\n")
 
     prompt = prompts.get(prompt_name, {})
     action_type = prompt.get("action_type", None)
 
-    stripped_text = response_text[
-        response_text.index("{") : (response_text.index("}") + 1)
-    ]
+    stripped_text = extract_json_object(response_text)
     data = eval(stripped_text)
     action = data.get("action", None)
 
@@ -255,7 +127,7 @@ def parse_response(prompt_name, response_text):
         stripped_action_arr = (
             [action_arr[0].strip()]
             if action_type == "single"
-            else [action.strip() for action in action_arr]
+            else [a.strip() for a in action_arr]
         )
     else:
         stripped_action_arr = [action]
@@ -264,4 +136,4 @@ def parse_response(prompt_name, response_text):
         action = stripped_action_arr[0]
         if action not in ["down", "drop"]:
             stripped_action_arr = [action, "down"]
-    return stripped_action_arr, stripped_text
+    return stripped_action_arr, stripped_text, data

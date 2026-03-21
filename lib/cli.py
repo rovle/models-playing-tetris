@@ -1,15 +1,24 @@
 import argparse
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--model", help="name of the model. Possible values: gemini-pro-vision, gpt-4-vision-preview, llava-13b, random, manual", default="gemini-pro-vision"
+        "--model",
+        help="Model name in litellm format: anthropic/claude-opus-4-6, openai/gpt-4o, "
+        "gemini/gemini-3-flash-preview, openrouter/google/gemini-3-flash-preview, etc. "
+        "Special values: random, manual",
+        required=True,
     )
     parser.add_argument(
-        "--temperature", type=float, help="temperature with which to sample the model. Default is 0.4", default=0.4
+        "--temperature",
+        type=float,
+        help="temperature with which to sample the model. Default is 0.4",
+        default=0.4,
     )
     parser.add_argument(
-        "--prompt_name", help="name of the prompt to use. See possible values in assets/prompts.json"
+        "--prompt_name",
+        help="name of the prompt to use. See possible values in assets/prompts.json",
     )
     parser.add_argument(
         "--example_ids",

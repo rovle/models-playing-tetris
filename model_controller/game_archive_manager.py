@@ -7,7 +7,7 @@ from lib.game_agent_comms import CommunicationsLog
 def create_new_game_folder(num):
     game_folder = f"games_archive/game_{num}"
     os.mkdir(game_folder)
-    for name in ['screens', 'actions', 'responses']:
+    for name in ['screens', 'actions', 'responses', 'ground_truth']:
         os.mkdir(f"{game_folder}/{name}")
 
 def save_detailed_response(game_number, detailed_response):
@@ -19,6 +19,14 @@ def save_detailed_response(game_number, detailed_response):
 def save_action(game_number, state_counter, action):
     with open(f"games_archive/game_{game_number}/actions/action_{state_counter}", "w") as fp:
         fp.write(action)
+
+def save_structured_response(game_number, screenshot_index, parsed_dict, raw_json):
+    resp = dict(parsed_dict)
+    resp["_raw_json"] = raw_json
+    path = f"games_archive/game_{game_number}/responses/response_{screenshot_index}.json"
+    with open(path, "w") as fp:
+        json.dump(resp, fp)
+
 
 def save_info(game_number, args):
     communications_log = CommunicationsLog()

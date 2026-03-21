@@ -55,11 +55,14 @@ Run main.py and provide the arguments choosing the model and detailing the promp
 Usage:
 
 ```console
-usage: main.py [-h] [--model MODEL] [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME] [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED] [--endless]
+usage: main.py [-h] --model MODEL [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME] [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED] [--endless]
 
 options:
   -h, --help            show this help message and exit
-  --model MODEL         name of the model. Possible values: gpt-4o, gpt-4o-2024-11-20, gpt-4o-mini, o1, o1-mini, claude-3-5-sonnet-latest, claude-3-opus-latest, gemini-1.5-pro, gemini-1.5-flash, gemini-exp-1206, gemini-exp-1121, llava-13b, random, manual
+  --model MODEL         Model name in litellm format: anthropic/claude-opus-4-6, openai/gpt-4o,
+                        gemini/gemini-3-flash-preview, openrouter/google/gemini-3-flash-preview,
+                        replicate/yorickvp/llava-13b, etc.
+                        Special values: random, manual
   --temperature TEMPERATURE
                         temperature with which to sample the model. Default is 0.4
   --prompt_name PROMPT_NAME
@@ -71,10 +74,14 @@ options:
   --endless             if supplied, the script runs new games until stopped manually
 ```
 
-Example command:
+Example commands:
 
 ```console
-python main.py --model gemini-1.5-flash --temperature 0.4 --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
+python main.py --model gemini/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
+
+python main.py --model anthropic/claude-opus-4-6 --prompt_name complex_cot_prompt_n5_multiple_actions_v1
+
+python main.py --model openrouter/google/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
 ```
 
 ## Evaluating model performance
@@ -114,8 +121,6 @@ python main.py --prompt_name your_prompt_name
 to run games with your prompt. Do note that our parsing functions expects the action(s) to be returned in a JSON-like object within the model's outputs, so in particular it expects a parseable JSON enclosed within "{" and "}", with a key "action" or "actions" and a string value containing either one action, or comma-separated actions, respectively, inside the model's output. You should therefore either **specify this in the prompt** (see the existing prompts for examples), or else rewrite the parsing function (`parse response` in `model_controller/models.py`) to match your prompting setup.
 
 ## Adding examples for few-shot prompting
-
-(Supported for `gpt-4-vision-preview` and `gemini-pro-vision`.)
 
 If you want to add an `(image, response)` pair as an example for few-shot prompting you should put the image into `assets/images` and add a dictionary entry to `examples.json`. Our current examples are optimized for being parsed as JSONs and added to the text in that way. See `examples.json` and `generate_response` method for the appropriate model in `model_controller/models.py`.
 
