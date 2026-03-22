@@ -5,6 +5,8 @@ import random
 from datetime import datetime
 
 import litellm
+
+litellm.suppress_debug_info = True
 from dotenv import load_dotenv
 
 import lib.image_transformation as img_transform
@@ -36,17 +38,26 @@ class LiteLLMModel:
                     k: v for i, (k, v) in enumerate(example.items()) if i > 1
                 }
                 img_b64 = img_transform.encode_image(example["image_path"])
-                example_messages.append({
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "Current board:"},
-                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}},
-                    ],
-                })
-                example_messages.append({
-                    "role": "assistant",
-                    "content": json.dumps(example_dict),
-                })
+                example_messages.append(
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Current board:"},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{img_b64}"
+                                },
+                            },
+                        ],
+                    }
+                )
+                example_messages.append(
+                    {
+                        "role": "assistant",
+                        "content": json.dumps(example_dict),
+                    }
+                )
 
         # Current board image(s) — augmented variants + original
         image_content = []
@@ -56,17 +67,26 @@ class LiteLLMModel:
                 pil_img.save(buf, format="PNG")
                 aug_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
                 image_content.append(
-                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{aug_b64}"}}
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{aug_b64}"},
+                    }
                 )
         current_img_b64 = img_transform.encode_image(image_path)
         image_content.append(
-            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{current_img_b64}"}}
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/png;base64,{current_img_b64}"},
+            }
         )
 
-        current_msg = {"role": "user", "content": [
-            {"type": "text", "text": "Current board:"},
-            *image_content,
-        ]}
+        current_msg = {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Current board:"},
+                *image_content,
+            ],
+        }
 
         messages = [
             {"role": "system", "content": instructions},
@@ -78,6 +98,7 @@ class LiteLLMModel:
             model=self.model_name,
             messages=messages,
             temperature=self.temperature,
+            max_tokens=5000,
             num_retries=10,
         )
 
