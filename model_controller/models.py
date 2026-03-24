@@ -98,7 +98,7 @@ class LiteLLMModel:
             model=self.model_name,
             messages=messages,
             temperature=self.temperature,
-            max_tokens=5000,
+            max_tokens=10000,
             num_retries=10,
         )
 

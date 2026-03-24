@@ -9,9 +9,8 @@ Benchmarking multimodal LLMs' ability to play Tetris. The system screenshots a p
 ## Setup
 
 ```bash
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # then fill in API keys (GEMINI_API_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY, REPLICATE_API_TOKEN, ANTHROPIC_API_KEY)
+uv sync
+cp .env.example .env   # then fill in API keys
 ```
 
 Requires `ffmpeg` on PATH for post-game video creation.
@@ -20,15 +19,18 @@ Requires `ffmpeg` on PATH for post-game video creation.
 
 ```bash
 # Run a game (model names use litellm provider/model format)
-python main.py --model gemini/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
+uv run python main.py --model gemini/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
 
-python main.py --model anthropic/claude-opus-4-6 --prompt_name complex_cot_prompt_n5_multiple_actions_v1
+uv run python main.py --model anthropic/claude-opus-4-6 --prompt_name complex_cot_prompt_n5_multiple_actions_v1
 
 # Via OpenRouter
-python main.py --model openrouter/google/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1
+uv run python main.py --model openrouter/google/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1
 
 # Analyze past games
-python lib/games_analysis.py --model gemini/gemini-3-flash-preview
+uv run python lib/games_analysis.py --model gemini/gemini-3-flash-preview
+
+# Generate video from a past game's screenshots (N = game number, default framerate=8)
+uv run python -c "from lib.video_creation import create_video; create_video(N, framerate=4)"
 ```
 
 No test suite exists.

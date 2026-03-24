@@ -1,11 +1,11 @@
 import subprocess
 
-def create_video(game_number):
+def create_video(game_number, framerate=8):
     command = [
         "nohup",
         "ffmpeg",
         "-framerate",
-        "8",
+        str(framerate),
         "-i",
         "screens/screenshot_%d.png",
         "-c:v",

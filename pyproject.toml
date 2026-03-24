@@ -1,0 +1,14 @@
+[project]
+name = "models-playing-tetris"
+version = "0.1.0"
+description = "Benchmarking multimodal LLMs' ability to play Tetris"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.4.2",
+    "pygame>=2.6.1",
+    "Pillow>=10.2.0",
+    "litellm==1.82.5",
+    "python-dotenv>=1.2.2",
+    "opencv-python>=4.13.0.92",
+    "tenacity>=9.1.4",
+]

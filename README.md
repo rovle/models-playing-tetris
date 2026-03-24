@@ -37,12 +37,8 @@ For more details on the bounty, see [Bounty details](bounty_details.md).
 ## Development Setup Instructions
 
 ```console
-# create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# install the dependencies
-pip install -r requirements.txt
+# install dependencies and create .venv
+uv sync
 
 # set your API keys in .env
 cp .env.example .env
@@ -77,11 +73,11 @@ options:
 Example commands:
 
 ```console
-python main.py --model gemini/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
+uv run python main.py --model gemini/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
 
-python main.py --model anthropic/claude-opus-4-6 --prompt_name complex_cot_prompt_n5_multiple_actions_v1
+uv run python main.py --model anthropic/claude-opus-4-6 --prompt_name complex_cot_prompt_n5_multiple_actions_v1
 
-python main.py --model openrouter/google/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
+uv run python main.py --model openrouter/google/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
 ```
 
 ## Evaluating model performance
@@ -103,7 +99,7 @@ options:
   --tetris_seed TETRIS_SEED
 ```
 
-For example, `python lib/games_analysis.py --model gpt-4-vision-preview` returns the statistics — average amount pieces placed, average amount of lines cleared, etc. – for all the finished games with `gpt-4-vision-preview` model. It also shows more detailed breakdown of all the argument permutations that were passed alongside `model gpt-4-vision-preview`.
+For example, `uv run python lib/games_analysis.py --model gpt-4-vision-preview` returns the statistics — average amount pieces placed, average amount of lines cleared, etc. – for all the finished games with `gpt-4-vision-preview` model. It also shows more detailed breakdown of all the argument permutations that were passed alongside `model gpt-4-vision-preview`.
 
 ## Adding your own prompts
 
@@ -116,7 +112,7 @@ New prompts should be added as a dictionary entry in the `assets/prompts.json`. 
 ```
 Where "action_type" denotes whether the prompt allows for more than one action to be supplied per model's output (`multiple`) or not (`single`). After adding that, you can run
 ```console
-python main.py --prompt_name your_prompt_name
+uv run python main.py --prompt_name your_prompt_name
 ```
 to run games with your prompt. Do note that our parsing functions expects the action(s) to be returned in a JSON-like object within the model's outputs, so in particular it expects a parseable JSON enclosed within "{" and "}", with a key "action" or "actions" and a string value containing either one action, or comma-separated actions, respectively, inside the model's output. You should therefore either **specify this in the prompt** (see the existing prompts for examples), or else rewrite the parsing function (`parse response` in `model_controller/models.py`) to match your prompting setup.
 
