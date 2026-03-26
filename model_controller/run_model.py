@@ -22,6 +22,16 @@ def tprint(*args, **kwargs):
     print(f"[{timestamp}]", *args, **kwargs)
 
 
+def build_extra_body(provider=None, reasoning=False):
+    """Build extra_body dict for OpenRouter options."""
+    body = {}
+    if provider:
+        body["provider"] = {"order": [provider], "allow_fallbacks": False}
+    if reasoning:
+        body["reasoning"] = {"enabled": True}
+    return body
+
+
 def get_model_response(model, prompt_name, example_ids, image_path=None):
     retry_count = 0
     while retry_count < 50:
@@ -75,7 +85,11 @@ def get_next_game_number():
 
 
 def test_model(args):
-    model = get_model(args.model, args.temperature)
+    is_openrouter = args.model.startswith("openrouter/")
+    provider = getattr(args, "provider", None)
+    reasoning = getattr(args, "reasoning", False)
+    extra_body = build_extra_body(provider, reasoning) if is_openrouter else {}
+    model = get_model(args.model, args.temperature, extra_body=extra_body)
 
     if not os.path.exists("games_archive"):
         os.mkdir("games_archive")

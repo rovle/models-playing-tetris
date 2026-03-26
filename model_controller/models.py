@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import lib.image_transformation as img_transform
 from lib.json_utils import extract_json_object
 
-load_dotenv()
+load_dotenv(override=True)
 
 with open("assets/prompts.json", "r") as prompt_file:
     prompts = json.load(prompt_file)
@@ -21,9 +21,10 @@ with open("assets/examples.json", "r") as example_file:
 
 
 class LiteLLMModel:
-    def __init__(self, model_name, temperature=0.4):
+    def __init__(self, model_name, temperature=0.4, extra_body=None):
         self.model_name = model_name
         self.temperature = temperature
+        self.extra_body = extra_body or {}
 
     def generate_response(self, prompt_name, example_ids, image_path):
         prompt = prompts.get(prompt_name, {})
@@ -98,11 +99,17 @@ class LiteLLMModel:
             model=self.model_name,
             messages=messages,
             temperature=self.temperature,
-            max_tokens=10000,
+            max_tokens=16000,
             num_retries=10,
+            extra_body=self.extra_body if self.extra_body else None,
         )
 
-        return response.choices[0].message.content
+        message = response.choices[0].message
+        reasoning = getattr(message, "reasoning_details", None) or getattr(message, "reasoning_content", None)
+        if reasoning:
+            print(f"[REASONING] {reasoning}")
+
+        return message.content
 
 
 class RandomPlayer:
@@ -124,12 +131,12 @@ class ManualPlayer:
         return f"{{\"action\": \"{input('Enter your next move: ')}\" }}"
 
 
-def get_model(model_name, temperature=0.4):
+def get_model(model_name, temperature=0.4, extra_body=None):
     if model_name == "random":
         return RandomPlayer(model_name, temperature)
     if model_name == "manual":
         return ManualPlayer(model_name, temperature)
-    return LiteLLMModel(model_name, temperature)
+    return LiteLLMModel(model_name, temperature, extra_body=extra_body)
 
 
 def parse_response(prompt_name, response_text):

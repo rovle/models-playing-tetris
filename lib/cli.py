@@ -37,4 +37,16 @@ def parse_args():
         action="store_true",
         help="if supplied, the script runs new games until stopped manually",
     )
+    parser.add_argument(
+        "--provider",
+        help="OpenRouter provider slug to route requests to a specific provider/endpoint. "
+        "Examples: google-ai-studio, google-vertex. "
+        "Only applies to openrouter/ models.",
+    )
+    parser.add_argument(
+        "--reasoning",
+        action="store_true",
+        help="Enable reasoning/thinking for the model via OpenRouter. "
+        "Only applies to openrouter/ models.",
+    )
     return parser.parse_args()
