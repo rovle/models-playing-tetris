@@ -7,8 +7,7 @@ Error taxonomy:
   1. Piece misidentification — model names the wrong tetromino
   2. Invalid move — game engine rejected the action
   3. Plan-action mismatch — final action differs from all CoT proposals
-  4. Line clear hallucination — model claims lines will clear but they don't
-  5. Strategic quality — board quality delta (height/holes) per turn
+  4. Strategic quality — board quality delta (height/holes) per turn
 """
 
 import argparse
@@ -17,15 +16,6 @@ import os
 
 
 PIECE_TYPES = {"I", "J", "L", "O", "S", "T", "Z"}
-
-LINE_CLEAR_PHRASES = [
-    "clear a line", "clear lines", "clearing a line", "clearing lines",
-    "line clear", "clear the line", "clears a line", "clears the line",
-    "complete a line", "complete the line", "completes a line",
-    "completing a line", "complete a row", "complete the row",
-    "completes a row", "completing a row", "clear a row", "clear the row",
-    "clears a row", "clearing a row",
-]
 
 
 # ---------------------------------------------------------------------------
@@ -133,35 +123,6 @@ def detect_plan_action_mismatch(response):
     }
 
 
-def detect_line_clear_hallucination(ground_truths, response, turn_start, action_count):
-    pre = ground_truths.get(turn_start)
-    last_step = turn_start + action_count
-    post = ground_truths.get(last_step)
-    if not pre or not post:
-        return {"checkable": False}
-
-    lines_before = pre.get("lines_cleared", 0)
-    lines_after = post.get("lines_cleared", 0)
-    actual_cleared = lines_after - lines_before
-
-    analysis_fields = [
-        response.get("analysis_of_actions_1", ""),
-        response.get("analysis_of_actions_2", ""),
-        response.get("analysis_of_actions_3", ""),
-        response.get("final_analysis", ""),
-        response.get("move_analysis", ""),
-    ]
-    analysis_text = " ".join(f for f in analysis_fields if f).lower()
-
-    claims_clear = any(phrase in analysis_text for phrase in LINE_CLEAR_PHRASES)
-
-    return {
-        "checkable": True,
-        "claimed_line_clear": claims_clear,
-        "actual_lines_cleared": actual_cleared,
-        "hallucination": claims_clear and actual_cleared == 0,
-    }
-
 
 # ---------------------------------------------------------------------------
 # Board quality metrics
@@ -234,7 +195,6 @@ def analyze_game(game_path):
             "piece_misidentification": {"count": 0, "details": []},
             "invalid_move": {"count": 0, "details": []},
             "plan_action_mismatch": {"count": 0, "details": []},
-            "line_clear_hallucination": {"count": 0, "details": []},
         },
         "board_quality_trajectory": [],
         "strategic_scores": [],
@@ -267,16 +227,6 @@ def analyze_game(game_path):
             results["errors"]["plan_action_mismatch"]["count"] += 1
             results["errors"]["plan_action_mismatch"]["details"].append(
                 {"step": resp_idx, **mismatch}
-            )
-
-        # 4. Line clear hallucination
-        lcr = detect_line_clear_hallucination(
-            ground_truths, response, resp_idx, action_count
-        )
-        if lcr.get("hallucination"):
-            results["errors"]["line_clear_hallucination"]["count"] += 1
-            results["errors"]["line_clear_hallucination"]["details"].append(
-                {"step": resp_idx, **lcr}
             )
 
         # Board quality at this turn
@@ -319,8 +269,6 @@ def merge_into_info(game_path, analysis):
         "invalid_move_rate": analysis["errors"]["invalid_move"].get("rate", 0),
         "plan_action_mismatch_count": analysis["errors"]["plan_action_mismatch"]["count"],
         "plan_action_mismatch_rate": analysis["errors"]["plan_action_mismatch"].get("rate", 0),
-        "line_clear_hallucination_count": analysis["errors"]["line_clear_hallucination"]["count"],
-        "line_clear_hallucination_rate": analysis["errors"]["line_clear_hallucination"].get("rate", 0),
         "avg_move_score": analysis.get("avg_move_score"),
     }
     with open(info_path, "w") as fp:
@@ -426,7 +374,7 @@ if __name__ == "__main__":
                 print(f"Aggregate across {len(all_analyses)} games")
                 print(f"{'='*60}")
                 for err_type in ["piece_misidentification", "invalid_move",
-                                 "plan_action_mismatch", "line_clear_hallucination"]:
+                                 "plan_action_mismatch"]:
                     total_count = sum(a["errors"][err_type]["count"] for a in all_analyses)
                     total_turns = sum(a["total_turns"] for a in all_analyses)
                     rate = total_count / total_turns if total_turns else 0

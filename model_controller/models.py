@@ -109,7 +109,7 @@ class LiteLLMModel:
         if reasoning:
             print(f"[REASONING] {reasoning}")
 
-        return message.content
+        return message.content, reasoning
 
 
 class RandomPlayer:
@@ -119,7 +119,7 @@ class RandomPlayer:
 
     def generate_response(self, prompt_name, example_ids, image_path):
         actions = ["left", "right", "down", "drop", "turn right", "turn left"]
-        return f'{{"action": "{random.choice(actions)}" }}'
+        return f'{{"action": "{random.choice(actions)}" }}', None
 
 
 class ManualPlayer:
@@ -128,7 +128,7 @@ class ManualPlayer:
         self.temperature = temperature
 
     def generate_response(self, prompt_name, example_ids, image_path):
-        return f"{{\"action\": \"{input('Enter your next move: ')}\" }}"
+        return f"{{\"action\": \"{input('Enter your next move: ')}\" }}", None
 
 
 def get_model(model_name, temperature=0.4, extra_body=None):
@@ -160,8 +160,6 @@ def parse_response(prompt_name, response_text):
     else:
         stripped_action_arr = [action]
 
-    if len(stripped_action_arr) == 1:
-        action = stripped_action_arr[0]
-        if action not in ["down", "drop"]:
-            stripped_action_arr = [action, "down"]
+    if stripped_action_arr[-1] not in ["down", "drop"]:
+        stripped_action_arr.append("down")
     return stripped_action_arr, stripped_text, data

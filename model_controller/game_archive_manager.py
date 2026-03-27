@@ -1,6 +1,5 @@
 import os
 import json
-from datetime import datetime
 from lib.game_agent_comms import CommunicationsLog
 
 
@@ -10,19 +9,15 @@ def create_new_game_folder(num):
     for name in ['screens', 'actions', 'responses', 'ground_truth']:
         os.mkdir(f"{game_folder}/{name}")
 
-def save_detailed_response(game_number, detailed_response):
-    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    responses_path = f"games_archive/game_{game_number}/responses/response_{current_time}.txt"
-    with open(responses_path, "w") as fp:
-        fp.write(detailed_response)
-
 def save_action(game_number, state_counter, action):
     with open(f"games_archive/game_{game_number}/actions/action_{state_counter}", "w") as fp:
         fp.write(action)
 
-def save_structured_response(game_number, screenshot_index, parsed_dict, raw_json):
+def save_structured_response(game_number, screenshot_index, parsed_dict, raw_json, reasoning=None):
     resp = dict(parsed_dict)
     resp["_raw_json"] = raw_json
+    if reasoning:
+        resp["reasoning"] = str(reasoning)
     path = f"games_archive/game_{game_number}/responses/response_{screenshot_index}.json"
     with open(path, "w") as fp:
         json.dump(resp, fp)

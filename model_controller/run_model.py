@@ -10,7 +10,6 @@ from lib.game_agent_comms import CommunicationsLog
 from model_controller.models import get_model, parse_response
 from model_controller.game_archive_manager import (
     create_new_game_folder,
-    save_detailed_response,
     save_structured_response,
     save_action,
     save_info,
@@ -28,15 +27,16 @@ def build_extra_body(provider=None, reasoning=False):
     if provider:
         body["provider"] = {"order": [provider], "allow_fallbacks": False}
     if reasoning:
-        body["reasoning"] = {"enabled": True}
+        body["reasoning"] = {"enabled": True, "max_tokens": 10000}
     return body
 
 
 def get_model_response(model, prompt_name, example_ids, image_path=None):
     retry_count = 0
+    reasoning = None
     while retry_count < 50:
         try:
-            response_text = model.generate_response(
+            response_text, reasoning = model.generate_response(
                 prompt_name, example_ids, image_path
             )
             if check_if_valid_json(response_text):
@@ -56,8 +56,8 @@ def get_model_response(model, prompt_name, example_ids, image_path=None):
         tprint("Failed to get a response after 50 retries. :(")
         exit()
 
-    action = parse_response(prompt_name, response_text)
-    return action
+    actions, detailed_response, parsed_response = parse_response(prompt_name, response_text)
+    return actions, detailed_response, parsed_response, reasoning
 
 
 def handle_game_over(game_number, state_counter, args):
@@ -115,14 +115,13 @@ def test_model(args):
         while not os.path.exists(image_path):
             time.sleep(0.1)
 
-        actions, detailed_response, parsed_response = get_model_response(
+        actions, detailed_response, parsed_response, reasoning = get_model_response(
             model, args.prompt_name, args.example_ids, image_path=image_path
         )
 
-        save_detailed_response(game_number, detailed_response)
         screenshot_index = state_counter - 1
         save_structured_response(
-            game_number, screenshot_index, parsed_response, detailed_response
+            game_number, screenshot_index, parsed_response, detailed_response, reasoning
         )
 
         for action in actions:
