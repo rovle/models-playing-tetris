@@ -96,10 +96,10 @@ def query_model(model_name, prompt, game_num, screen_num):
     stripped_text = response[
         response.index("{") : (response.index("}") + 1)
     ]
-    json = eval(stripped_text)
+    parsed = json.loads(stripped_text)
 
-    grade = json["grade"]
-    
+    grade = parsed["grade"]
+
     return grade
     
         

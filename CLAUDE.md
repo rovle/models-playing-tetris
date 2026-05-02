@@ -50,13 +50,13 @@ A JSON-file-backed dict that both threads read/write for synchronization (`state
 
 ### Model abstraction (`model_controller/models.py`)
 
-`LiteLLMModel` wraps `litellm.completion()` with `generate_response(prompt_name, example_ids, image_path)`. Accepts any litellm model string (e.g., `anthropic/claude-opus-4-6`). `RandomPlayer` and `ManualPlayer` bypass litellm. `get_model(model_name, temperature)` factory routes to the appropriate class. `parse_response()` extracts JSON `{"action": "..."}` from model output using `eval()`.
+`LiteLLMModel` wraps `litellm.completion()` with `generate_response(prompt_name, example_ids, image_path)`. Accepts any litellm model string (e.g., `anthropic/claude-opus-4-6`). `RandomPlayer` and `ManualPlayer` bypass litellm. `get_model(model_name, temperature)` factory routes to the appropriate class. `parse_response()` extracts JSON `{"action": "..."}` from model output using `json.loads()`.
 
 ### Prompts & examples
 
-- `assets/prompts.json` — prompt definitions with `action_type` (`single`/`multiple`) and `instructions` text
+- `assets/prompts/<name>.md` — one markdown file per prompt with YAML frontmatter (`action_type`, optional `augmentation`); body is the instructions text. Loaded by `lib/prompts.py:load_prompts()`. Filename (without extension) is the value passed to `--prompt_name`.
 - `assets/examples.json` — few-shot examples linking image paths to expected responses
-- New prompts: add to `prompts.json`, model output must contain a JSON object with `"action"` or `"actions"` key
+- New prompts: drop a new `.md` file into `assets/prompts/`. Model output must contain a JSON object with `"action"` or `"actions"` key.
 
 ### Game archive (`games_archive/`)
 

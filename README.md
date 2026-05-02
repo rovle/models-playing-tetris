@@ -62,7 +62,7 @@ options:
   --temperature TEMPERATURE
                         temperature with which to sample the model. Default is 0.4
   --prompt_name PROMPT_NAME
-                        name of the prompt to use. See possible values in assets/prompts.json
+                        name of the prompt to use. See available prompts in assets/prompts/ (filename without .md extension)
   --example_ids [EXAMPLE_IDS ...]
                         optional list of IDs of examples for few-shot prompting. See possible values in assets/examples.json
   --tetris_seed TETRIS_SEED
@@ -103,14 +103,17 @@ For example, `uv run python lib/games_analysis.py --model gpt-4-vision-preview` 
 
 ## Adding your own prompts
 
-New prompts should be added as a dictionary entry in the `assets/prompts.json`. Specifically you should add a new key, value pair:
-```json
-"your_prompt_name": {
-    "action_type": "single/multiple",
-    "instructions": "your_prompt_here"
-}
+Drop a new markdown file into `assets/prompts/` with YAML frontmatter:
+
+```markdown
+---
+action_type: multiple
+---
+
+your_prompt_here
 ```
-Where "action_type" denotes whether the prompt allows for more than one action to be supplied per model's output (`multiple`) or not (`single`). After adding that, you can run
+
+The filename (without `.md`) becomes the value passed to `--prompt_name`. The `action_type` field denotes whether the prompt allows more than one action per model output (`multiple`) or not (`single`). Optional metadata (e.g., `augmentation`) can be added as additional frontmatter keys — see existing prompts for examples. After adding the file, you can run
 ```console
 uv run python main.py --prompt_name your_prompt_name
 ```
