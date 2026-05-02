@@ -1,3 +1,4 @@
+import sys
 import io
 import base64
 import json
@@ -23,10 +24,7 @@ with open("assets/examples.json", "r") as example_file:
 def _supports_explicit_cache_control(model_name):
     """Whether the model accepts ``cache_control: {"type": "ephemeral"}`` blocks.
 
-    Anthropic, Bedrock/Vertex Claude, and Gemini accept the marker via litellm.
-    OpenAI caches automatically for prompts >=1024 tokens and does not understand
-    the field. OpenRouter forwards the field to the upstream provider, so we apply
-    it whenever the underlying provider is Anthropic or Google.
+    Gemini is excluded on purpose. Implicit caching on Gemini 2.5+ handles prefix reuse without our hint.
     """
     name = model_name.lower()
     direct_prefixes = (
@@ -34,18 +32,12 @@ def _supports_explicit_cache_control(model_name):
         "bedrock/anthropic.",
         "bedrock/claude",
         "vertex_ai/claude",
-        "vertex_ai/gemini",
-        "gemini/",
     )
     if name.startswith(direct_prefixes):
         return True
     if name.startswith("openrouter/"):
-        upstream = name[len("openrouter/"):]
-        return (
-            upstream.startswith(("anthropic/", "google/"))
-            or "claude" in upstream
-            or "gemini" in upstream
-        )
+        upstream = name[len("openrouter/") :]
+        return upstream.startswith("anthropic/") or "claude" in upstream
     return False
 
 
@@ -55,6 +47,56 @@ def _ephemeral_text_block(text):
         "text": text,
         "cache_control": {"type": "ephemeral"},
     }
+
+
+def _log_full_prompt(messages):
+    """Print the assembled prompt. Reads as the actual prompt text;
+    [image: ...] and [CACHE BREAKPOINT] are the only markers inserted by this logger."""
+
+    lines = ["[PROMPT] ===== full prompt ====="]
+    for msg in messages:
+        role = msg["role"]
+        content = msg["content"]
+        lines.append(f"--- {role} ---")
+        if isinstance(content, str):
+            lines.append(content)
+            continue
+        for block in content:
+            block_type = block.get("type", "unknown")
+            if block_type == "text":
+                text = block.get("text", "")
+                if block.get("cache_control"):
+                    text = text.rstrip("\n") + "\n[CACHE BREAKPOINT]"
+                lines.append(text)
+            elif block_type == "image_url":
+                url = block.get("image_url", {}).get("url", "")
+                if url.startswith("data:image"):
+                    size = len(url) - url.index(",") - 1
+                    lines.append(f"[image: base64 elided, {size} chars]")
+                else:
+                    lines.append(f"[image: {url}]")
+            else:
+                lines.append(f"[{block_type}]")
+    lines.append("[PROMPT] ===== end =====")
+    sys.stdout.write("\n".join(lines) + "\n")
+    sys.stdout.flush()
+
+
+def _legacy_analysis(example):
+    """Assemble an analysis block from older example schemas that pre-date the
+    explicit ``analysis`` field (e.g. ``board_state`` + ``move_analysis``)."""
+    legacy_keys = (
+        "board_state",
+        "preliminary_analysis",
+        "move_analysis",
+        "final_analysis",
+    )
+    parts = [
+        f"{key.replace('_', ' ').capitalize()}: {example[key]}"
+        for key in legacy_keys
+        if key in example
+    ]
+    return "\n".join(parts)
 
 
 def _log_cache_usage(usage):
@@ -96,47 +138,63 @@ def _extract_reasoning(message):
 
 
 class LiteLLMModel:
-    def __init__(self, model_name, temperature=0.4, extra_body=None, reasoning_effort=None):
+    def __init__(
+        self, model_name, temperature=0.4, extra_body=None, reasoning_effort=None
+    ):
         self.model_name = model_name
         self.temperature = temperature
         self.extra_body = extra_body or {}
         self.reasoning_effort = reasoning_effort
+        self._prompt_logged = False
 
     def generate_response(self, prompt_name, example_ids, image_path):
         prompt = prompts.get(prompt_name, {})
         instructions = prompt.get("instructions", "")
         augmentation = prompt.get("augmentation")
 
-        # Build few-shot example messages
-        example_messages = []
-        for example in examples:
-            if example["id"] in example_ids:
-                example_dict = {
-                    k: v for i, (k, v) in enumerate(example.items()) if i > 1
-                }
-                img_b64 = img_transform.encode_image(example["image_path"])
-                example_messages.append(
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": "Current board:"},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/png;base64,{img_b64}"
-                                },
-                            },
-                        ],
-                    }
-                )
-                example_messages.append(
-                    {
-                        "role": "assistant",
-                        "content": json.dumps(example_dict),
-                    }
-                )
+        # Few-shot examples and the current board live in a single user message
+        # with explicit XML wrapping so the model can distinguish demonstrations
+        # (<example>...</example>) from the board it must act on
+        # (<current_board>...</current_board>).
+        content_blocks = []
 
-        # Current board image(s) — augmented variants + original
+        example_lookup = {ex["id"]: ex for ex in examples}
+        matched_examples = [
+            example_lookup[i] for i in example_ids if i in example_lookup
+        ]
+
+        for example in matched_examples:
+            img_b64 = img_transform.encode_image(example["image_path"])
+            output_dict = {
+                "tetromino": example["tetromino"],
+                "action": example["action"],
+            }
+            analysis = example.get("analysis") or _legacy_analysis(example)
+
+            content_blocks.append({"type": "text", "text": "<example>\n<board_image>"})
+            content_blocks.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/png;base64,{img_b64}"},
+                }
+            )
+            closing = "</board_image>\n"
+            if analysis:
+                closing += f"<analysis>\n{analysis}\n</analysis>\n"
+            closing += f"<output>{json.dumps(output_dict)}</output>\n</example>\n"
+            content_blocks.append({"type": "text", "text": closing})
+
+        # Mark the cache breakpoint on the last example's closing text so the
+        # provider can reuse the static prefix across moves. With no examples,
+        # the breakpoint moves to the system message instead (handled below).
+        if (
+            _supports_explicit_cache_control(self.model_name)
+            and content_blocks
+            and content_blocks[-1]["type"] == "text"
+        ):
+            content_blocks[-1]["cache_control"] = {"type": "ephemeral"}
+
+        # Current board image(s) (augmented variants + original), wrapped in <current_board>
         image_content = []
         if augmentation:
             for pil_img in img_transform.apply_augmentations(image_path, augmentation):
@@ -157,34 +215,25 @@ class LiteLLMModel:
             }
         )
 
-        current_msg = {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": "Current board:"},
-                *image_content,
-            ],
-        }
+        content_blocks.append({"type": "text", "text": "\n<current_board>"})
+        content_blocks.extend(image_content)
+        content_blocks.append({"type": "text", "text": "</current_board>"})
 
-        # Mark a single cache breakpoint at the end of the static prefix so the
-        # provider can reuse the system prompt + few-shot examples across moves.
-        if _supports_explicit_cache_control(self.model_name):
-            if example_messages:
-                last_example = example_messages[-1]
-                last_example["content"] = [_ephemeral_text_block(last_example["content"])]
-                system_message = {"role": "system", "content": instructions}
-            else:
-                system_message = {
-                    "role": "system",
-                    "content": [_ephemeral_text_block(instructions)],
-                }
+        current_msg = {"role": "user", "content": content_blocks}
+
+        if _supports_explicit_cache_control(self.model_name) and not matched_examples:
+            system_message = {
+                "role": "system",
+                "content": [_ephemeral_text_block(instructions)],
+            }
         else:
             system_message = {"role": "system", "content": instructions}
 
-        messages = [
-            system_message,
-            *example_messages,
-            current_msg,
-        ]
+        messages = [system_message, current_msg]
+
+        if not self._prompt_logged:
+            _log_full_prompt(messages)
+            self._prompt_logged = True
 
         completion_kwargs = {
             "model": self.model_name,
@@ -226,7 +275,7 @@ class ManualPlayer:
         self.temperature = temperature
 
     def generate_response(self, prompt_name, example_ids, image_path):
-        return f"{{\"action\": \"{input('Enter your next move: ')}\" }}", None
+        return f'{{"action": "{input("Enter your next move: ")}" }}', None
 
 
 def get_model(model_name, temperature=0.4, extra_body=None, reasoning_effort=None):
@@ -234,7 +283,12 @@ def get_model(model_name, temperature=0.4, extra_body=None, reasoning_effort=Non
         return RandomPlayer(model_name, temperature)
     if model_name == "manual":
         return ManualPlayer(model_name, temperature)
-    return LiteLLMModel(model_name, temperature, extra_body=extra_body, reasoning_effort=reasoning_effort)
+    return LiteLLMModel(
+        model_name,
+        temperature,
+        extra_body=extra_body,
+        reasoning_effort=reasoning_effort,
+    )
 
 
 def parse_response(prompt_name, response_text):

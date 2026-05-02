@@ -194,7 +194,7 @@
   {
     "id": 25,
     "image_path": "assets/images/so_called_good_game_1.png",
-    "tetromino":"I",
+    "tetromino": "I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "move_analysis": "Given that there is a gap on the far right and filling it will result in multiple line clears, we should rotate the I tetromino, currently in horizontal orientation, clockwise, move it right 4 times and then drop it.",
     "action": "rotate clockwise, right, right, right, right, drop"
@@ -210,10 +210,10 @@
   {
     "id": 27,
     "image_path": "assets/images/so_called_good_game_1.png",
-    "tetromino":"I",
+    "tetromino": "I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "move_analysis": "Given that there is a gap on the far right and filling it will result in multiple line clears, we want to use the I tetromino to fill it. In order to do so, we need to rotate it clockwise and move it to the right, so we can first rotate it.",
-    "action": "rotate clockwise" 
+    "action": "rotate clockwise"
   },
   {
     "id": 28,
@@ -234,7 +234,7 @@
   {
     "id": 30,
     "image_path": "assets/images/so_called_good_game_1.png",
-    "tetromino":"I",
+    "tetromino": "I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "left": "There is already a large stack of tetrominoes on the left, so it is best to avoid adding to it, hence this move is not advisable.",
     "right": "There is significantly more space on the right side of the board, and in particular there is a gap into which the I tetromino can be dropped. Therefore, this move is advisable.",
@@ -275,7 +275,7 @@
   {
     "id": 33,
     "image_path": "assets/images/so_called_good_game_1.png",
-    "tetromino":"I",
+    "tetromino": "I",
     "board_state": "The board has been nicely and evenly filled with tetrominoes. There are almost no gaps, which is ideal. There is a stack of tetrominoes in the left corner, and a smaller stack all throughout the rest of the board, with a small gap in the right where a long tetromino can be slotted in.",
     "preliminary_analysis": "The I tetromino should ideally be slotted into the gap on the right, though some other options are possible.",
     "action_proposal_1": "rotate clockwise, right, right, drop",
@@ -286,5 +286,26 @@
     "analysis_of_actions_3": "After these moves the I tetromino would be hugging the right border and be perfectly positioned to fill the gap and thus clear several lines.",
     "final_analysis": "Since rotating the I tetromino and then moving it 4 times would cclear several lines that seems like the best option.",
     "action": "rotate clockwise, right, right, right, right, drop"
+  },
+  {
+    "id": 34,
+    "image_path": "assets/images/line_clear_5.png",
+    "tetromino": "Z",
+    "action": "left, left, left, drop",
+    "analysis": "Stack: cols 0 and 1 are filled at row 19 (yellow). Cols 4 and 5 are filled at row 19 (orange and pink). Col 9 is filled at rows 18 and 19 (pink). Cols 2, 3, 6, 7, and 8 are empty.\nHoles: none. The (2, 19) and (3, 19) cells are exposed at the top of the stack, not covered.\nActive piece: Z at (4, 1), (5, 1), (5, 2), (6, 2). The Z's stair-step shape has the top-left two cells one row above the bottom-right two cells.\nPlan: shift the Z three columns to the left, putting it at cols 1-3. The bottom of the Z then lands on (2, 19) and (3, 19), filling the gap. The top of the Z rests on (1, 18) and (2, 18). Col 1 already has yellow at row 19, so stacking on it is safe and creates no new holes.\nMoves: left, left, left, drop."
+  },
+  {
+    "id": 35,
+    "image_path": "assets/images/line_clear_4.png",
+    "tetromino": "J",
+    "action": "turn left, right, right, right, right, drop",
+    "analysis": "Stack: cols 0 and 1 are filled at rows 18-19 (yellow). Cols 2 and 3 are filled at row 19 only (orange). Col 4 is filled at rows 18-19 (orange). Col 5 is filled at rows 18-19 (pink). Cols 6 and 7 are filled at row 19 only (pink). Cols 8 and 9 are empty. Row 19 is filled at cols 0-7 \u2014 a two-cell gap on the bottom-right is the only thing blocking a line clear.\nHoles: none.\nActive piece: J at (4, 1), (4, 2), (5, 2), (6, 2). Spawn orientation, hook at top-left.\nPlan: turn left rotates the J counterclockwise into a vertical orientation, with the hook at the bottom-left. Four rights move it to cols 8-9, with the body in col 9 and the hook in col 8. Dropping lands the piece at (9, 17), (9, 18), (8, 19), and (9, 19). Cells (8, 19) and (9, 19) complete row 19 \u2014 line clear.\nMoves: turn left, right, right, right, right, drop."
+  },
+  {
+    "id": 36,
+    "image_path": "assets/images/so_called_good_game_1.png",
+    "tetromino": "I",
+    "action": "turn right, right, right, right, right, drop",
+    "analysis": "Stack: heavily filled. The left side (cols 0-1) has the tallest stack, reaching close to the top of the board. The middle (cols 2-7) has blocks at varying heights. Col 9 is empty, a perfect slot for a vertical I-piece to drop into!\nHoles: the only covered hole is at (1, 7).\nActive piece: I at (3, 2), (4, 2), (5, 2), (6, 2). Spawn orientation, horizontal.\nPlan: turn the I clockwise into a vertical orientation (single column, four cells stacked). Four rights move it to col 9. Dropping locks it into the right-edge opening, clearing 4 rows simultaneously.\nMoves: turn right, right, right, right, right, drop."
   }
 ]

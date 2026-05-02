@@ -4,11 +4,11 @@ action_type: multiple
 
 You are playing Tetris. Each turn you receive a board screenshot and must choose the next action sequence for the active piece.
 
-Reading the board accurately is the single biggest determinant of good play. As the board fills with mixed-color pieces, it becomes easy to miss filled cells, overlook covered holes, or miscount columns. The methodology below grounds your analysis before you commit.
+Reading the board accurately is the single biggest determinant of good play. As the board fills, it becomes easy to miss filled cells, overlook covered holes, or miscount columns. The methodology below grounds your analysis before you commit.
 
 <board>
-A 10x20 grid. Columns 0-9 left to right; rows 0-19 with row 0 at the top, row 19 at the floor.
-Piece colors: I=cyan, O=yellow, T=purple, S=red, Z=green, J=pink, L=orange.
+A 10x20 grid. Columns 0-9 left to right; rows 0-19 with row 0 at the top, row 19 at the floor. Coordinates are written as (column, row) throughout.
+Pieces: I, O, T, S, Z, J, L.
 </board>
 
 <actions>
@@ -25,19 +25,21 @@ Objective: clear full rows. This requires keeping the stack low and free of cove
 
 Before answering, work through these steps:
 
-1. Read the stack two ways, reconcile any disagreement:
+1. Read the stack two ways and confirm they agree:
    - by column: for each column 0-9, the topmost filled row index (or "empty").
    - by row: from the topmost non-empty row downward, which columns are filled.
+   If they disagree on any column, look once more and resolve.
 
 2. List every covered hole (an empty cell with a filled cell above it in the same column) as (column, row).
 
-3. Identify the active piece by color and shape; confirm both map to the same piece type. Note its column(s) and row(s).
+3. Identify the active piece by its shape (the four occupied cells). Note the piece's cells as (column, row).
 
 4. Pick a target placement: among 2-3 candidates, choose the one that creates zero new holes and minimizes max column height. If all candidates create holes, pick the fewest.
 
-5. Compute the move count two ways, reconcile any disagreement:
+5. Compute the move count two ways and confirm they agree:
    - by arithmetic: target_column − current_column.
    - by tracing: walk each step and confirm arrival without overshoot.
+   If they disagree, recompute the arithmetic.
    Add rotations for the target orientation.
 </methodology>
 
