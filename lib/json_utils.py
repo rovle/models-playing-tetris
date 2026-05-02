@@ -1,3 +1,4 @@
+import json
 import re
 
 
@@ -17,9 +18,7 @@ def extract_json_object(text):
 def check_if_valid_json(response_text):
     try:
         stripped_text = extract_json_object(response_text)
-        json_parsed = eval(stripped_text)
-        if not isinstance(json_parsed["action"], str):
-            return False
-        return True
-    except:
+        parsed = json.loads(stripped_text)
+        return isinstance(parsed.get("action"), str)
+    except Exception:
         return False

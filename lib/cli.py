@@ -18,7 +18,7 @@ def parse_args():
     )
     parser.add_argument(
         "--prompt_name",
-        help="name of the prompt to use. See possible values in assets/prompts.json",
+        help="name of the prompt to use. See available prompts in assets/prompts/ (filename without .md extension)",
     )
     parser.add_argument(
         "--example_ids",

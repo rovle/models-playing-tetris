@@ -89,7 +89,16 @@ def test_model(args):
     provider = getattr(args, "provider", None)
     reasoning = getattr(args, "reasoning", False)
     extra_body = build_extra_body(provider, reasoning) if is_openrouter else {}
-    model = get_model(args.model, args.temperature, extra_body=extra_body)
+    # OpenRouter enables reasoning via extra_body; for direct providers, use
+    # litellm's universal ``reasoning_effort`` (maps to thinking_level on
+    # Gemini 3, thinking_budget on Gemini 2.5, and native reasoning on OpenAI).
+    reasoning_effort = "high" if reasoning and not is_openrouter else None
+    model = get_model(
+        args.model,
+        args.temperature,
+        extra_body=extra_body,
+        reasoning_effort=reasoning_effort,
+    )
 
     if not os.path.exists("games_archive"):
         os.mkdir("games_archive")
