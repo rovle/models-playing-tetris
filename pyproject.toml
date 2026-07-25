@@ -6,8 +6,8 @@ requires-python = ">=3.11"
 dependencies = [
     "numpy>=2.4.2",
     "pygame>=2.6.1",
-    "Pillow>=12.2.0",
-    "litellm>=1.83.14",
+    "Pillow>=12.3.0",
+    "litellm>=1.93.0",
     "python-dotenv>=1.2.2",
     "opencv-python>=4.13.0.92",
     "tenacity>=9.1.4",
