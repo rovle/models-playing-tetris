@@ -26,6 +26,9 @@ uv run python main.py --model anthropic/claude-opus-4-6 --prompt_name complex_co
 # Via OpenRouter
 uv run python main.py --model openrouter/google/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1
 
+# Via the local Claude Code CLI, billed to whatever account it is logged in with
+uv run python main.py --model claude-code/opus --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --effort high
+
 # Analyze past games
 uv run python lib/games_analysis.py --model gemini/gemini-3-flash-preview
 
@@ -50,7 +53,9 @@ A JSON-file-backed dict that both threads read/write for synchronization (`state
 
 ### Model abstraction (`model_controller/models.py`)
 
-`LiteLLMModel` wraps `litellm.completion()` with `generate_response(prompt_name, example_ids, image_path)`. Accepts any litellm model string (e.g., `anthropic/claude-opus-4-6`). `RandomPlayer` and `ManualPlayer` bypass litellm. `get_model(model_name, temperature)` factory routes to the appropriate class. `parse_response()` extracts JSON `{"action": "..."}` from model output using `json.loads()`.
+`LiteLLMModel` wraps `litellm.completion()` with `generate_response(prompt_name, example_ids, image_path)`. Accepts any litellm model string (e.g., `anthropic/claude-opus-4-6`). `RandomPlayer` and `ManualPlayer` bypass litellm. `ClaudeCodeModel` (`claude_code_model.py`) shells out to the local `claude` CLI for `claude-code/` model names; see `docs/claude_code_backend.md`. `get_model(model_name, temperature)` factory routes to the appropriate class. `parse_response()` extracts JSON `{"action": "..."}` from model output using `json.loads()`.
+
+Every backend builds its prompt through `model_controller/prompt_builder.py`, which emits provider-agnostic blocks and adapts them per backend, so runs stay comparable. Backends that do not use litellm raise `ModelCallError` (`model_controller/errors.py`) so the retry loop in `run_model.py` catches them the same way.
 
 ### Prompts & examples
 

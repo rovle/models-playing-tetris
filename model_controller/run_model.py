@@ -7,6 +7,7 @@ from litellm.llms.base_llm.chat.transformation import BaseLLMException
 from lib.json_utils import check_if_valid_json
 from lib.video_creation import create_video
 from lib.game_agent_comms import CommunicationsLog
+from model_controller.errors import ModelCallError
 from model_controller.models import get_model, parse_response
 from model_controller.game_archive_manager import (
     create_new_game_folder,
@@ -31,10 +32,13 @@ def build_extra_body(provider=None, reasoning=False):
     return body
 
 
+MAX_RETRIES = 10
+
+
 def get_model_response(model, prompt_name, example_ids, image_path=None):
     retry_count = 0
     reasoning = None
-    while retry_count < 50:
+    while retry_count < MAX_RETRIES:
         try:
             response_text, reasoning = model.generate_response(
                 prompt_name, example_ids, image_path
@@ -44,20 +48,29 @@ def get_model_response(model, prompt_name, example_ids, image_path=None):
             else:
                 retry_count += 1
                 tprint(response_text)
-                tprint(f"Invalid JSON {retry_count}/50, retrying...")
+                tprint(f"Invalid JSON {retry_count}/{MAX_RETRIES}, retrying...")
                 continue
-        except (LiteLLMAPIError, RateLimitError, BaseLLMException, KeyError) as e:
+        except (
+            LiteLLMAPIError,
+            RateLimitError,
+            BaseLLMException,
+            ModelCallError,
+            KeyError,
+        ) as e:
             retry_count += 1
-            tprint(f"Caught error {e}, {retry_count}/50; retrying...")
+            tprint(f"Caught error {e}, {retry_count}/{MAX_RETRIES}; retrying...")
             time.sleep(1)
             continue
 
-    if retry_count == 50:
-        tprint("Failed to get a response after 50 retries. :(")
+    if retry_count == MAX_RETRIES:
+        tprint(f"Failed to get a response after {MAX_RETRIES} retries. Stopping.")
+        # Without this the game waits forever for actions that never arrive.
+        CommunicationsLog()["shutdown_game"] = "1"
         exit()
 
     actions, detailed_response, parsed_response = parse_response(prompt_name, response_text)
-    return actions, detailed_response, parsed_response, reasoning
+    metrics = getattr(model, "last_metrics", None)
+    return actions, detailed_response, parsed_response, reasoning, metrics
 
 
 def handle_game_over(game_number, state_counter, args):
@@ -98,6 +111,7 @@ def test_model(args):
         args.temperature,
         extra_body=extra_body,
         reasoning_effort=reasoning_effort,
+        effort=getattr(args, "effort", None),
     )
 
     if not os.path.exists("games_archive"):
@@ -105,7 +119,7 @@ def test_model(args):
 
     game_number = get_next_game_number()
     create_new_game_folder(game_number)
-    communications_log = CommunicationsLog(restart_log=True)
+    communications_log = CommunicationsLog()
     if args.endless:
         communications_log["endless"] = True
     if args.tetris_seed:
@@ -124,13 +138,20 @@ def test_model(args):
         while not os.path.exists(image_path):
             time.sleep(0.1)
 
-        actions, detailed_response, parsed_response, reasoning = get_model_response(
-            model, args.prompt_name, args.example_ids, image_path=image_path
+        actions, detailed_response, parsed_response, reasoning, metrics = (
+            get_model_response(
+                model, args.prompt_name, args.example_ids, image_path=image_path
+            )
         )
 
         screenshot_index = state_counter - 1
         save_structured_response(
-            game_number, screenshot_index, parsed_response, detailed_response, reasoning
+            game_number,
+            screenshot_index,
+            parsed_response,
+            detailed_response,
+            reasoning,
+            metrics,
         )
 
         for action in actions:

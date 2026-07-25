@@ -1,8 +1,6 @@
-import sys
-import io
-import base64
 import json
 import random
+import time
 from datetime import datetime
 
 import litellm
@@ -10,15 +8,20 @@ import litellm
 litellm.suppress_debug_info = True
 from dotenv import load_dotenv
 
-import lib.image_transformation as img_transform
 from lib.json_utils import extract_json_object
 from lib.prompts import load_prompts
+from model_controller.claude_code_model import CLAUDE_CODE_PREFIX, ClaudeCodeModel
+from model_controller.prompt_builder import (
+    build_request,
+    load_examples,
+    log_full_prompt,
+    to_openai_messages,
+)
 
 load_dotenv(override=True)
 
 prompts = load_prompts("assets/prompts")
-with open("assets/examples.json", "r") as example_file:
-    examples = json.load(example_file)
+examples = load_examples()
 
 
 def _supports_explicit_cache_control(model_name):
@@ -39,64 +42,6 @@ def _supports_explicit_cache_control(model_name):
         upstream = name[len("openrouter/") :]
         return upstream.startswith("anthropic/") or "claude" in upstream
     return False
-
-
-def _ephemeral_text_block(text):
-    return {
-        "type": "text",
-        "text": text,
-        "cache_control": {"type": "ephemeral"},
-    }
-
-
-def _log_full_prompt(messages):
-    """Print the assembled prompt. Reads as the actual prompt text;
-    [image: ...] and [CACHE BREAKPOINT] are the only markers inserted by this logger."""
-
-    lines = ["[PROMPT] ===== full prompt ====="]
-    for msg in messages:
-        role = msg["role"]
-        content = msg["content"]
-        lines.append(f"--- {role} ---")
-        if isinstance(content, str):
-            lines.append(content)
-            continue
-        for block in content:
-            block_type = block.get("type", "unknown")
-            if block_type == "text":
-                text = block.get("text", "")
-                if block.get("cache_control"):
-                    text = text.rstrip("\n") + "\n[CACHE BREAKPOINT]"
-                lines.append(text)
-            elif block_type == "image_url":
-                url = block.get("image_url", {}).get("url", "")
-                if url.startswith("data:image"):
-                    size = len(url) - url.index(",") - 1
-                    lines.append(f"[image: base64 elided, {size} chars]")
-                else:
-                    lines.append(f"[image: {url}]")
-            else:
-                lines.append(f"[{block_type}]")
-    lines.append("[PROMPT] ===== end =====")
-    sys.stdout.write("\n".join(lines) + "\n")
-    sys.stdout.flush()
-
-
-def _legacy_analysis(example):
-    """Assemble an analysis block from older example schemas that pre-date the
-    explicit ``analysis`` field (e.g. ``board_state`` + ``move_analysis``)."""
-    legacy_keys = (
-        "board_state",
-        "preliminary_analysis",
-        "move_analysis",
-        "final_analysis",
-    )
-    parts = [
-        f"{key.replace('_', ' ').capitalize()}: {example[key]}"
-        for key in legacy_keys
-        if key in example
-    ]
-    return "\n".join(parts)
 
 
 def _log_cache_usage(usage):
@@ -145,94 +90,22 @@ class LiteLLMModel:
         self.temperature = temperature
         self.extra_body = extra_body or {}
         self.reasoning_effort = reasoning_effort
+        self.last_metrics = {}
         self._prompt_logged = False
 
     def generate_response(self, prompt_name, example_ids, image_path):
-        prompt = prompts.get(prompt_name, {})
-        instructions = prompt.get("instructions", "")
-        augmentation = prompt.get("augmentation")
-
-        # Few-shot examples and the current board live in a single user message
-        # with explicit XML wrapping so the model can distinguish demonstrations
-        # (<example>...</example>) from the board it must act on
-        # (<current_board>...</current_board>).
-        content_blocks = []
-
-        example_lookup = {ex["id"]: ex for ex in examples}
-        matched_examples = [
-            example_lookup[i] for i in example_ids if i in example_lookup
-        ]
-
-        for example in matched_examples:
-            img_b64 = img_transform.encode_image(example["image_path"])
-            output_dict = {
-                "tetromino": example["tetromino"],
-                "action": example["action"],
-            }
-            analysis = example.get("analysis") or _legacy_analysis(example)
-
-            content_blocks.append({"type": "text", "text": "<example>\n<board_image>"})
-            content_blocks.append(
-                {
-                    "type": "image_url",
-                    "image_url": {"url": f"data:image/png;base64,{img_b64}"},
-                }
-            )
-            closing = "</board_image>\n"
-            if analysis:
-                closing += f"<analysis>\n{analysis}\n</analysis>\n"
-            closing += f"<output>{json.dumps(output_dict)}</output>\n</example>\n"
-            content_blocks.append({"type": "text", "text": closing})
-
-        # Mark the cache breakpoint on the last example's closing text so the
-        # provider can reuse the static prefix across moves. With no examples,
-        # the breakpoint moves to the system message instead (handled below).
-        if (
-            _supports_explicit_cache_control(self.model_name)
-            and content_blocks
-            and content_blocks[-1]["type"] == "text"
-        ):
-            content_blocks[-1]["cache_control"] = {"type": "ephemeral"}
-
-        # Current board image(s) (augmented variants + original), wrapped in <current_board>
-        image_content = []
-        if augmentation:
-            for pil_img in img_transform.apply_augmentations(image_path, augmentation):
-                buf = io.BytesIO()
-                pil_img.save(buf, format="PNG")
-                aug_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-                image_content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{aug_b64}"},
-                    }
-                )
-        current_img_b64 = img_transform.encode_image(image_path)
-        image_content.append(
-            {
-                "type": "image_url",
-                "image_url": {"url": f"data:image/png;base64,{current_img_b64}"},
-            }
+        instructions, blocks, has_examples = build_request(
+            prompts.get(prompt_name, {}), examples, example_ids, image_path
+        )
+        messages = to_openai_messages(
+            instructions,
+            blocks,
+            has_examples,
+            cache_control=_supports_explicit_cache_control(self.model_name),
         )
 
-        content_blocks.append({"type": "text", "text": "\n<current_board>"})
-        content_blocks.extend(image_content)
-        content_blocks.append({"type": "text", "text": "</current_board>"})
-
-        current_msg = {"role": "user", "content": content_blocks}
-
-        if _supports_explicit_cache_control(self.model_name) and not matched_examples:
-            system_message = {
-                "role": "system",
-                "content": [_ephemeral_text_block(instructions)],
-            }
-        else:
-            system_message = {"role": "system", "content": instructions}
-
-        messages = [system_message, current_msg]
-
         if not self._prompt_logged:
-            _log_full_prompt(messages)
+            log_full_prompt(instructions, blocks)
             self._prompt_logged = True
 
         completion_kwargs = {
@@ -247,14 +120,26 @@ class LiteLLMModel:
         if self.reasoning_effort:
             completion_kwargs["reasoning_effort"] = self.reasoning_effort
 
+        started = time.monotonic()
         response = litellm.completion(**completion_kwargs)
+        duration_ms = int((time.monotonic() - started) * 1000)
 
         message = response.choices[0].message
         reasoning = _extract_reasoning(message)
         if reasoning:
             print(f"[REASONING] {reasoning}")
 
-        _log_cache_usage(getattr(response, "usage", None))
+        usage = getattr(response, "usage", None)
+        _log_cache_usage(usage)
+        self.last_metrics = {
+            "backend": "litellm",
+            "model": self.model_name,
+            "duration_ms": duration_ms,
+            "usage": usage.model_dump() if hasattr(usage, "model_dump") else None,
+            "total_cost_usd": getattr(response, "_hidden_params", {}).get(
+                "response_cost"
+            ),
+        }
 
         return message.content, reasoning
 
@@ -278,11 +163,15 @@ class ManualPlayer:
         return f'{{"action": "{input("Enter your next move: ")}" }}', None
 
 
-def get_model(model_name, temperature=0.4, extra_body=None, reasoning_effort=None):
+def get_model(
+    model_name, temperature=0.4, extra_body=None, reasoning_effort=None, effort=None
+):
     if model_name == "random":
         return RandomPlayer(model_name, temperature)
     if model_name == "manual":
         return ManualPlayer(model_name, temperature)
+    if model_name.startswith(CLAUDE_CODE_PREFIX):
+        return ClaudeCodeModel(model_name, prompts=prompts, examples=examples, effort=effort)
     return LiteLLMModel(
         model_name,
         temperature,

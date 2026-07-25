@@ -34,6 +34,7 @@ class TetrisData:
     model: str
     pieces_count: int
     temperature: Optional[float] = None
+    effort: Optional[str] = None
     tetris_seed: Optional[int] = None
     prompt_name: Optional[str] = None
     example_ids: List = field(default_factory=list)
@@ -42,6 +43,12 @@ class TetrisData:
     n_lines: List[int] = field(default_factory=lambda: [0, 0, 0, 0])
     t_spins: List[int] = field(default_factory=lambda: [0, 0, 0, 0])
     combo: int = 0
+    # What a model name like "opus" actually resolved to
+    resolved_model: Optional[str] = None
+    # Cost and timing, only present for games played after we started saving them
+    total_cost_usd: Optional[float] = None
+    avg_move_duration_s: Optional[float] = None
+    total_output_tokens: Optional[int] = None
     # Cognitive analysis fields (populated when --save is used with cognitive_analysis.py)
     piece_misid_rate: Optional[float] = None
     invalid_move_rate: Optional[float] = None
@@ -165,6 +172,17 @@ if __name__ == "__main__":
     for key, (avg_score, count) in sorted_average_scores:
         labeled_key = ", ".join(f"{field}: {value}" for field, value in zip(unspecified_fields, key))
         print(f"Group ({labeled_key}): Average Score = {avg_score}, Number of Games = {count}")
+
+    cost_records = [r for r in filtered_records if r.total_cost_usd is not None]
+    timed_records = [r for r in filtered_records if r.avg_move_duration_s is not None]
+    if cost_records or timed_records:
+        print("\n--- Cost and Latency ---")
+        if cost_records:
+            avg_cost = sum(r.total_cost_usd for r in cost_records) / len(cost_records)
+            print(f"  Avg Cost per Game: ${avg_cost:.2f} ({len(cost_records)} games)")
+        if timed_records:
+            avg_latency = sum(r.avg_move_duration_s for r in timed_records) / len(timed_records)
+            print(f"  Avg Time per Move: {avg_latency:.1f}s ({len(timed_records)} games)")
 
     # Cognitive error analysis stats (if available)
     cog_records = [r for r in filtered_records if r.piece_misid_rate is not None]

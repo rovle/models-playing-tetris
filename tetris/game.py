@@ -752,6 +752,9 @@ class Game:
                 self.update_gui()
                 self.gui.redraw()
 
+            if CommunicationsLog()["shutdown_game"] == "1":
+                return
+
             # check for the last game number
             time.sleep(0.1)
             try:
