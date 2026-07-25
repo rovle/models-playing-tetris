@@ -626,28 +626,8 @@ class Game:
         self.state_counter = 0
 
     def act(self, action):
-        communications_log = CommunicationsLog()
-        communications_log["state_counter"] = str(self.state_counter)
         if self.current_state.game_status == "gameover":
-            communications_log["game_over"] = "1"
-            communications_log["pieces_count"] = str(self.current_state.pieces)
-            communications_log["score"] = str(int(self.current_state.score))
-            communications_log["lines_cleared"] = str(self.current_state.lines)
-            communications_log["n_lines"] = self.current_state.n_lines
-            communications_log["t_spins"] = self.current_state.t_spins
-            communications_log["combo"] = str(int(self.current_state.combo))
-
-            self.state_counter = 0
-            self.restart()
-             
-            while True:
-                if communications_log["shutdown_game"] == "1":
-                    sys.exit()
-                if communications_log["finished_restart"] == "1" and communications_log["endless"]:
-                    break
-                time.sleep(0.1)
-            
-            communications_log["finished_restart"] = "0"
+            self._signal_gameover_and_wait()
             return self.get_state_input(self.current_state), 0, True, False
 
         success = False
@@ -703,6 +683,29 @@ class Game:
             self.current_state.idle += 1
 
         return self.get_state_input(self.current_state), add_score, done, success
+
+    def _signal_gameover_and_wait(self):
+        communications_log = CommunicationsLog()
+        communications_log["game_over"] = "1"
+        communications_log["pieces_count"] = str(self.current_state.pieces)
+        communications_log["score"] = str(int(self.current_state.score))
+        communications_log["lines_cleared"] = str(self.current_state.lines)
+        communications_log["n_lines"] = self.current_state.n_lines
+        communications_log["t_spins"] = self.current_state.t_spins
+        communications_log["combo"] = str(int(self.current_state.combo))
+        communications_log["state_counter"] = str(self.state_counter)
+
+        self.state_counter = 0
+        self.restart()
+
+        while True:
+            if communications_log["shutdown_game"] == "1":
+                sys.exit()
+            if communications_log["finished_restart"] == "1" and communications_log["endless"]:
+                break
+            time.sleep(0.1)
+
+        communications_log["finished_restart"] = "0"
 
     def render(self):
         if self.gui is not None:
@@ -798,7 +801,11 @@ class Game:
                 pygame.image.save(subsurface, f"{path}/screens/screenshot_{self.state_counter}.png")
                 _save_ground_truth(path, self.state_counter, self.current_state,
                                    action_applied=action, action_success=success)
-                self.state_counter += 1
+                if self.current_state.game_status == "gameover":
+                    self._signal_gameover_and_wait()
+                else:
+                    CommunicationsLog()["state_counter"] = str(self.state_counter)
+                    self.state_counter += 1
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
