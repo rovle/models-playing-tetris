@@ -11,6 +11,7 @@ from tetris.tetromino import Tetromino
 from tetris.common import *
 from tetris.gui import Gui
 from lib.game_agent_comms import CommunicationsLog
+from model_controller.game_archive_manager import last_state_index, list_game_numbers
 
 
 def _save_ground_truth(path, state_counter, gamestate, action_applied=None, action_success=None):
@@ -26,6 +27,15 @@ def _save_ground_truth(path, state_counter, gamestate, action_applied=None, acti
         "score": int(gamestate.score),
         "lines_cleared": gamestate.lines,
         "pieces_placed": gamestate.pieces,
+        # The fields below are not visible on the board. Gamestate.from_ground_truth
+        # needs them to resume a game with the same piece sequence and scoring.
+        "seed": gamestate.seed,
+        "next_next": gamestate.next_next,
+        "is_hold_last": gamestate.is_hold_last,
+        "combo": gamestate.combo,
+        "n_lines": list(gamestate.n_lines),
+        "t_spins": list(gamestate.t_spins),
+        "rng_state": _rng_state_to_json(gamestate.rd),
     }
     if action_applied is not None:
         gt["action_applied"] = action_applied
@@ -34,6 +44,34 @@ def _save_ground_truth(path, state_counter, gamestate, action_applied=None, acti
     if os.path.isdir(gt_dir):
         with open(f"{gt_dir}/state_{state_counter}.json", "w") as fp:
             json.dump(gt, fp)
+
+def _rng_state_to_json(rd):
+    version, internal, gauss_next = rd.getstate()
+    return [version, list(internal), gauss_next]
+
+
+def _rng_state_from_json(state):
+    version, internal, gauss_next = state
+    return (version, tuple(internal), gauss_next)
+
+
+def _tetromino_from_ground_truth(gt):
+    tetro = Tetromino.new_tetromino(gt["current_piece"])
+    for _ in range(tetro.rot_max):
+        if tetro.rot == gt["piece_rotation"]:
+            break
+        tetro.move((0, 0, 1))
+    # get_displaced() adds (center_x, center_y + 1) to every square, so the
+    # first saved square gives the offset.
+    coords = gt["piece_coords"]
+    tetro.center_x = coords[0][0] - tetro.tet[0][0]
+    tetro.center_y = coords[0][1] - tetro.tet[0][1] - 1
+    if tetro.get_displaced() != [list(sq) for sq in coords]:
+        raise ValueError(
+            f"cannot place {gt['current_piece']} at {coords} with rotation {gt['piece_rotation']}"
+        )
+    return tetro
+
 
 INITIAL_EX_WIGHT = 0.0
 SPIN_SHIFT_FOR_NON_T = [(1, 0, 0), (-1, 0, 0),
@@ -98,6 +136,36 @@ class Gamestate:
         self.pieces = 0
         self.idle = 0
         self.combo = 0
+
+    @classmethod
+    def from_ground_truth(cls, gt, seed=None):
+        """Rebuild a mid-game state from a ground_truth/state_N.json snapshot.
+
+        Snapshots written before the hidden fields (seed, next_next,
+        is_hold_last, combo, n_lines, t_spins, rng_state) were recorded still
+        load: the board, current piece, queue, hold and score are exact, and the
+        missing fields fall back to a fresh game's values, so the piece after
+        the visible queue and the RNG differ from the original run.
+        Raises ValueError if the current piece cannot be placed on the saved
+        coordinates.
+        """
+        state = cls(seed=gt.get("seed", seed))
+        state.grid = [list(row) for row in gt["grid"]]
+        state.tetromino = _tetromino_from_ground_truth(gt)
+        state.hold_type = gt["hold_piece"]
+        state.next = list(gt["next_pieces"])
+        state.score = gt["score"]
+        state.lines = gt["lines_cleared"]
+        state.pieces = gt["pieces_placed"]
+        if "next_next" in gt:
+            state.next_next = gt["next_next"]
+        state.is_hold_last = gt.get("is_hold_last", False)
+        state.combo = gt.get("combo", 0)
+        state.n_lines = list(gt.get("n_lines", state.n_lines))
+        state.t_spins = list(gt.get("t_spins", state.t_spins))
+        if "rng_state" in gt:
+            state.rd.setstate(_rng_state_from_json(gt["rng_state"]))
+        return state
 
     def start(self):
         self.tetromino = Tetromino.new_tetromino(self.next[0])
@@ -624,6 +692,8 @@ class Game:
         self.all_possible_states = []
         self.height = height
         self.state_counter = 0
+        # Set by resume(); None means run() plays in the newest archive folder.
+        self.game_number = None
 
     def act(self, action):
         if self.current_state.game_status == "gameover":
@@ -715,7 +785,24 @@ class Game:
                 if event.type == pygame.QUIT:
                     pass
 
+    def resume(self, game_number):
+        """Continue an archived game from its last recorded state.
+
+        Loads ground_truth/state_N.json for the highest N that also has a
+        screenshot, and sets state_counter so the next action file read is
+        action_{N+1}. Raises FileNotFoundError if the game has no usable state.
+        """
+        index = last_state_index(game_number)
+        if index is None:
+            raise FileNotFoundError(f"game_{game_number} has no screenshot with a ground truth file")
+        with open(f"games_archive/game_{game_number}/ground_truth/state_{index}.json") as fp:
+            gt = json.load(fp)
+        self.current_state = Gamestate.from_ground_truth(gt, seed=self.seed)
+        self.game_number = game_number
+        self.state_counter = index + 1
+
     def restart(self, height=None):
+        self.game_number = None
         if height is None:
             self.current_state = Gamestate(seed=self.seed, height=self.height)
         else:
@@ -760,16 +847,14 @@ class Game:
 
             # check for the last game number
             time.sleep(0.1)
-            try:
-                folder_names = os.listdir("games_archive")
-            except FileNotFoundError:
-                time.sleep(0.1)
-                continue
-            if len(folder_names) > 0:
-                game_number = max( [int(folder.split("_")[1])
-                               for folder in folder_names] )
+            if self.game_number is not None:
+                game_number = self.game_number
             else:
-                continue
+                game_numbers = list_game_numbers()
+                if not game_numbers:
+                    time.sleep(0.1)
+                    continue
+                game_number = max(game_numbers)
             path = f"games_archive/game_{game_number}"
             if self.state_counter == 0:
                 capture_area = pygame.Rect(screen_x, screen_y, screen_width, screen_height)
@@ -1039,5 +1124,9 @@ def start():
     else:
         seed = communications_log["tetris_seed"]
     game = Game(gui=Gui(), seed=seed)
-    game.restart()
+    resume_game = communications_log["resume_game"]
+    if resume_game is None:
+        game.restart()
+    else:
+        game.resume(int(resume_game))
     game.run()

@@ -27,7 +27,8 @@ class CommunicationsLog:
                 "t_spins": None,
                 "combo": None,
                 "endless" : False,
-                "shutdown_game": None
+                "shutdown_game": None,
+                "resume_game": None
             },
             fp)
         self.log = {}

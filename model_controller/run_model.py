@@ -11,6 +11,8 @@ from model_controller.errors import ModelCallError
 from model_controller.models import get_model, parse_response
 from model_controller.game_archive_manager import (
     create_new_game_folder,
+    last_state_index,
+    list_game_numbers,
     save_structured_response,
     save_action,
     save_info,
@@ -95,11 +97,7 @@ def handle_game_over(game_number, state_counter, args):
 
 
 def get_next_game_number():
-    folder_names = os.listdir("games_archive")
-    next_number = 1 + max(
-        [int(folder.split("_")[1]) for folder in folder_names], default=0
-    )
-    return next_number
+    return 1 + max(list_game_numbers(), default=0)
 
 
 def test_model(args):
@@ -124,14 +122,25 @@ def test_model(args):
     if not os.path.exists("games_archive"):
         os.mkdir("games_archive")
 
-    game_number = get_next_game_number()
-    create_new_game_folder(game_number)
+    resume_game = getattr(args, "resume_game", None)
+    if resume_game:
+        game_number = resume_game
+        last_index = last_state_index(game_number)
+        if last_index is None:
+            tprint(f"game_{game_number} has no state to resume from. Stopping.")
+            CommunicationsLog()["shutdown_game"] = "1"
+            exit()
+        state_counter = last_index + 1
+        tprint(f"Resuming game_{game_number} from state {last_index}")
+    else:
+        game_number = get_next_game_number()
+        create_new_game_folder(game_number)
+        state_counter = 1
     communications_log = CommunicationsLog()
     if args.endless:
         communications_log["endless"] = True
     if args.tetris_seed:
         communications_log["tetris_seed"] = int(args.tetris_seed)
-    state_counter = 1
 
     if args.model == "manual":
         tprint(

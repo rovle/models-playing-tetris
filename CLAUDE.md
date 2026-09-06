@@ -32,6 +32,9 @@ uv run python main.py --model openrouter/openai/gpt-6-astra --prompt_name minima
 # Via the local Claude Code CLI, billed to whatever account it is logged in with
 uv run python main.py --model claude-code/opus --prompt_name minimal_v1 --effort high
 
+# Continue an interrupted game from its last screenshot (state is rebuilt from ground_truth/)
+uv run python main.py --model anthropic/claude-fable-5-1 --prompt_name minimal_v1 --resume_game 65
+
 # Analyze past games
 uv run python lib/games_analysis.py --model gemini/gemini-3.8-flash
 
@@ -80,6 +83,7 @@ Forked from [zeroize318/tetris_ai](https://github.com/zeroize318/tetris_ai). `Ga
 - If a single action isn't `down` or `drop`, a `down` is auto-appended
 - The `augmentation` field in prompts applies image transforms before sending to the model (works for all providers)
 - `--endless` flag loops games indefinitely; without it, the process exits after one game
+- `--resume_game N` continues `games_archive/game_N` from its last screenshot. `Game.resume` rebuilds the state from `ground_truth/state_K.json` via `Gamestate.from_ground_truth`. Snapshots now also record `seed`, `next_next`, `is_hold_last`, `combo`, `n_lines`, `t_spins` and `rng_state`, so a resumed game keeps the same piece sequence. Older snapshots lack them and resume with a fresh piece generator
 - `--max_tokens` (default 16000) caps output per move. Gemini 3+ counts thinking tokens against that cap, so a model that thinks past it returns empty content and the turn fails JSON validation. Raise it for heavy thinkers
 - `--reasoning` requests thinking at the level set by `--effort` (default `high`). Without it the request carries no reasoning settings and the provider default applies, so `--effort` is ignored. OpenRouter gets `extra_body.reasoning.effort`, direct providers get litellm's `reasoning_effort`, and `claude-code/` always passes `--effort` to the CLI. `xhigh` and `max` are accepted by OpenRouter and Claude Code only
 - Gemini 3+ called through `gemini/` or `vertex_ai/` gets `includeThoughts: true` so thought summaries land in `responses/`

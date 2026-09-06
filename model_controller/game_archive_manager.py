@@ -1,6 +1,17 @@
 import os
+import re
 import json
 from lib.game_agent_comms import CommunicationsLog
+
+
+def list_game_numbers():
+    """Game numbers found in games_archive/, from folders named game_<N>.
+    Other entries (videos, scripts) are ignored. Empty if the archive is missing."""
+    try:
+        names = os.listdir("games_archive")
+    except FileNotFoundError:
+        return []
+    return [int(m.group(1)) for m in (re.fullmatch(r"game_(\d+)", n) for n in names) if m]
 
 
 def create_new_game_folder(num):
@@ -8,6 +19,20 @@ def create_new_game_folder(num):
     os.mkdir(game_folder)
     for name in ['screens', 'actions', 'responses', 'ground_truth']:
         os.mkdir(f"{game_folder}/{name}")
+
+def last_state_index(game_number):
+    """Highest state index N with both screens/screenshot_N.png and
+    ground_truth/state_N.json in the game's folder, or None if there is none."""
+    folder = f"games_archive/game_{game_number}"
+    if not os.path.isdir(f"{folder}/ground_truth"):
+        return None
+    indexes = []
+    for name in os.listdir(f"{folder}/ground_truth"):
+        match = re.fullmatch(r"state_(\d+)\.json", name)
+        if match and os.path.exists(f"{folder}/screens/screenshot_{match.group(1)}.png"):
+            indexes.append(int(match.group(1)))
+    return max(indexes, default=None)
+
 
 def save_action(game_number, state_counter, action):
     with open(f"games_archive/game_{game_number}/actions/action_{state_counter}", "w") as fp:

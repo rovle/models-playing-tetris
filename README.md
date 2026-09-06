@@ -52,8 +52,8 @@ Usage:
 
 ```console
 usage: main.py [-h] --model MODEL [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME]
-               [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED] [--endless]
-               [--provider PROVIDER] [--reasoning] [--max_tokens MAX_TOKENS]
+               [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED]
+               [--resume_game RESUME_GAME] [--endless] [--provider PROVIDER] [--reasoning] [--max_tokens MAX_TOKENS]
                [--effort {minimal,low,medium,high,xhigh,max}]
 
 options:
@@ -77,6 +77,10 @@ options:
   --tetris_seed TETRIS_SEED
                         seed for the Tetris game. If it is supplied all the games will be played
                         with the same seed, i.e. the same sequence of pieces
+  --resume_game RESUME_GAME
+                        number of an archived game to continue from its last recorded state,
+                        e.g. 65 for games_archive/game_65. New screenshots, actions and
+                        responses are appended to that folder.
   --endless             if supplied, the script runs new games until stopped manually
   --provider PROVIDER   OpenRouter provider slug to route requests to a specific
                         provider/endpoint. Examples: google-ai-studio, google-vertex. Only applies
@@ -105,6 +109,9 @@ uv run python main.py --model openrouter/openai/gpt-6-astra --prompt_name minima
 
 # Few-shot: reasoning_few_shot_v1 expects examples with an analysis field (ids 34 to 36)
 uv run python main.py --model anthropic/claude-fable-5-1 --prompt_name reasoning_few_shot_v1 --example_ids 34 35 36
+
+# Continue an interrupted game from its last screenshot
+uv run python main.py --model anthropic/claude-fable-5-1 --prompt_name minimal_v1 --resume_game 65
 ```
 
 ## Evaluating model performance

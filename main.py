@@ -12,7 +12,9 @@ def run_game():
 
 if __name__ == "__main__":
     args = parse_args()
-    CommunicationsLog(restart_log=True)
+    communications_log = CommunicationsLog(restart_log=True)
+    if args.resume_game:
+        communications_log["resume_game"] = args.resume_game
     model_thread = threading.Thread(target=run_testing)
     game_thread = threading.Thread(target=run_game)
 

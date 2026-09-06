@@ -40,6 +40,14 @@ def parse_args():
         help="seed for the Tetris game. If it is supplied all the games will be played with the same seed, i.e. the same sequence of pieces",
     )
     parser.add_argument(
+        "--resume_game",
+        type=int,
+        help="number of an archived game to continue from its last recorded state, "
+        "e.g. 65 for games_archive/game_65. New screenshots, actions and responses "
+        "are appended to that folder. Games recorded before hidden state was "
+        "saved resume with the same board and queue but a fresh piece generator",
+    )
+    parser.add_argument(
         "--endless",
         action="store_true",
         help="if supplied, the script runs new games until stopped manually",
