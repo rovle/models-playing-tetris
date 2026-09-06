@@ -6,6 +6,14 @@
 
 *Benchmarking various multimodal LLMs' ability to play Tetris.*
 
+---
+
+**Update, September 2026.** Two years later, vision models clear lines. The compilation below goes from GPT-4V and Gemini Pro Vision in February 2024 (about 20 pieces, no lines) to **GPT-6 Astra** in September 2026 (121 pieces, 34 lines), with Gemini 3 Flash, Gemini 3.5 Flash, Claude Opus 5 and Claude Fable 5.1 in between.
+
+https://github.com/user-attachments/assets/8213df90-7b41-461a-bad5-0eafe83b665b
+
+---
+
 https://github.com/rovle/models-playing-tetris/assets/29806640/5bc1de42-49c8-4e4c-9676-0025536de99d
 
 Can the current multimodal LLMs successfully play Tetris? We test GPT-4V, Gemini Pro Vision, and LLava 13b, with few-shot and chain of thought prompting, on this task. See a short summary of the results in the table below; for more details see the [X (Twitter) thread](https://twitter.com/magabrielagc/status/1753086983658713482) or the [Lesswrong post](https://www.lesswrong.com/posts/vk3JmXhNHi8zyJrfP/putting-multimodal-llms-to-the-tetris-test).
