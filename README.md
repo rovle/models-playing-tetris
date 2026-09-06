@@ -51,33 +51,60 @@ Run main.py and provide the arguments choosing the model and detailing the promp
 Usage:
 
 ```console
-usage: main.py [-h] --model MODEL [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME] [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED] [--endless]
+usage: main.py [-h] --model MODEL [--temperature TEMPERATURE] [--prompt_name PROMPT_NAME]
+               [--example_ids [EXAMPLE_IDS ...]] [--tetris_seed TETRIS_SEED] [--endless]
+               [--provider PROVIDER] [--reasoning] [--max_tokens MAX_TOKENS]
+               [--effort {minimal,low,medium,high,xhigh,max}]
 
 options:
   -h, --help            show this help message and exit
-  --model MODEL         Model name in litellm format: anthropic/claude-opus-4-6, openai/gpt-4o,
-                        gemini/gemini-3-flash-preview, openrouter/google/gemini-3-flash-preview,
-                        replicate/yorickvp/llava-13b, etc.
-                        Special values: random, manual
+  --model MODEL         Model name in litellm format: anthropic/claude-fable-5-1,
+                        openai/gpt-6-astra, gemini/gemini-3.8-flash,
+                        openrouter/openai/gpt-6-astra, etc. Prefix with claude-code/ to play
+                        through the Claude Code CLI on whatever account it is logged in with, e.g.
+                        claude-code/opus. Special values: random, manual
   --temperature TEMPERATURE
-                        temperature with which to sample the model. Default is 0.4
+                        temperature with which to sample the model. When omitted, the request
+                        carries no temperature and the provider default applies, which is what the
+                        model vendors recommend for reasoning models. Ignored by claude-code/
+                        models, since the CLI has no temperature flag
   --prompt_name PROMPT_NAME
-                        name of the prompt to use. See available prompts in assets/prompts/ (filename without .md extension)
+                        name of the prompt to use. See available prompts in assets/prompts/
+                        (filename without .md extension). Default is minimal_v1
   --example_ids [EXAMPLE_IDS ...]
-                        optional list of IDs of examples for few-shot prompting. See possible values in assets/examples.json
+                        optional list of IDs of examples for few-shot prompting. See possible
+                        values in assets/examples.json
   --tetris_seed TETRIS_SEED
-                        seed for the Tetris game. If it is supplied all the games will be played with the same seed, i.e. the same sequence of pieces
+                        seed for the Tetris game. If it is supplied all the games will be played
+                        with the same seed, i.e. the same sequence of pieces
   --endless             if supplied, the script runs new games until stopped manually
+  --provider PROVIDER   OpenRouter provider slug to route requests to a specific
+                        provider/endpoint. Examples: google-ai-studio, google-vertex. Only applies
+                        to openrouter/ models.
+  --reasoning           Enable reasoning/thinking for the model at the level set by --effort.
+                        Ignored by claude-code/ models, which always reason.
+  --max_tokens MAX_TOKENS
+                        Output token cap per move. On Gemini 3+ and other reasoning models the
+                        thinking tokens count against this cap, so a low value returns an empty
+                        response. Default is 16000. Ignored by claude-code/ models.
+  --effort {minimal,low,medium,high,xhigh,max}
+                        How much the model should think before answering. Default is high. Applies
+                        to claude-code/ models always, and to other models when --reasoning is
+                        passed. xhigh and max are accepted by claude-code/ and openrouter/ only;
+                        direct providers may reject them.
 ```
 
 Example commands:
 
 ```console
-uv run python main.py --model gemini/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
+uv run python main.py --model gemini/gemini-3.8-flash --prompt_name minimal_v1
 
-uv run python main.py --model anthropic/claude-opus-4-6 --prompt_name complex_cot_prompt_n5_multiple_actions_v1
+uv run python main.py --model anthropic/claude-fable-5-1 --prompt_name minimal_v1
 
-uv run python main.py --model openrouter/google/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
+uv run python main.py --model openrouter/openai/gpt-6-astra --prompt_name minimal_v1 --reasoning --effort low
+
+# Few-shot: reasoning_few_shot_v1 expects examples with an analysis field (ids 34 to 36)
+uv run python main.py --model anthropic/claude-fable-5-1 --prompt_name reasoning_few_shot_v1 --example_ids 34 35 36
 ```
 
 ## Evaluating model performance

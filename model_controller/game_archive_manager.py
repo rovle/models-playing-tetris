@@ -64,8 +64,12 @@ def save_info(game_number, args):
     information_dict = {
         "tetris_seed": communications_log["tetris_seed"],
         "model": args.model,
+        # null temperature means the request carried none and the provider
+        # default applied. effort is only in effect for claude-code/ models or
+        # when --reasoning was passed; the ``reasoning`` field records that.
         "temperature": args.temperature,
         "effort": getattr(args, "effort", None),
+        "reasoning": getattr(args, "reasoning", False),
         "prompt_name": args.prompt_name,
         "example_ids": args.example_ids,
         "pieces_count": int(communications_log["pieces_count"]),

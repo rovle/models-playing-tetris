@@ -5,8 +5,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
-        help="Model name in litellm format: anthropic/claude-opus-4-6, openai/gpt-4o, "
-        "gemini/gemini-3-flash-preview, openrouter/google/gemini-3-flash-preview, etc. "
+        help="Model name in litellm format: anthropic/claude-fable-5-1, openai/gpt-6-astra, "
+        "gemini/gemini-3.8-flash, openrouter/openai/gpt-6-astra, etc. "
         "Prefix with claude-code/ to play through the Claude Code CLI on whatever "
         "account it is logged in with, e.g. claude-code/opus. "
         "Special values: random, manual",
@@ -15,13 +15,17 @@ def parse_args():
     parser.add_argument(
         "--temperature",
         type=float,
-        help="temperature with which to sample the model. Default is 0.4. "
+        help="temperature with which to sample the model. When omitted, the request "
+        "carries no temperature and the provider default applies, which is what "
+        "the model vendors recommend for reasoning models. "
         "Ignored by claude-code/ models, since the CLI has no temperature flag",
-        default=0.4,
+        default=None,
     )
     parser.add_argument(
         "--prompt_name",
-        help="name of the prompt to use. See available prompts in assets/prompts/ (filename without .md extension)",
+        default="minimal_v1",
+        help="name of the prompt to use. See available prompts in assets/prompts/ "
+        "(filename without .md extension). Default is minimal_v1",
     )
     parser.add_argument(
         "--example_ids",
@@ -49,13 +53,24 @@ def parse_args():
     parser.add_argument(
         "--reasoning",
         action="store_true",
-        help="Enable reasoning/thinking for the model via OpenRouter. "
-        "Only applies to openrouter/ models.",
+        help="Enable reasoning/thinking for the model at the level set by --effort. "
+        "Ignored by claude-code/ models, which always reason.",
+    )
+    parser.add_argument(
+        "--max_tokens",
+        type=int,
+        default=16000,
+        help="Output token cap per move. On Gemini 3+ and other reasoning models the "
+        "thinking tokens count against this cap, so a low value returns an empty "
+        "response. Default is 16000. Ignored by claude-code/ models.",
     )
     parser.add_argument(
         "--effort",
-        choices=["low", "medium", "high", "xhigh", "max"],
-        help="How much the model should think before answering. "
-        "Only applies to claude-code/ models.",
+        choices=["minimal", "low", "medium", "high", "xhigh", "max"],
+        default="high",
+        help="How much the model should think before answering. Default is high. "
+        "Applies to claude-code/ models always, and to other models when "
+        "--reasoning is passed. xhigh and max are accepted by claude-code/ and "
+        "openrouter/ only; direct providers may reject them.",
     )
     return parser.parse_args()

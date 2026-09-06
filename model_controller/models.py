@@ -44,6 +44,42 @@ def _supports_explicit_cache_control(model_name):
     return False
 
 
+def _is_gemini_3_direct(model_name):
+    """Whether this is a Gemini 3+ model called through Google directly.
+
+    OpenRouter is excluded because that route configures thinking through
+    ``extra_body`` instead.
+    """
+    name = model_name.lower()
+    if not name.startswith(("gemini/", "vertex_ai/")):
+        return False
+    return "gemini-3" in name
+
+
+def _thinking_kwargs(model_name, budget_tokens):
+    """Ask Gemini 3+ to return its thought summary, without changing thinking level.
+
+    litellm gates ``thinking`` and ``reasoning_effort`` on ``supports_reasoning``,
+    which is False for any model missing from its cost map, so a model released
+    after the pinned litellm version raises UnsupportedParamsError. Registering the
+    name restores the gate. On Gemini 3+, ``budget_tokens`` only decides
+    ``includeThoughts``; the thinking level stays at the provider default.
+    """
+    if not _is_gemini_3_direct(model_name):
+        return {}
+    if not litellm.supports_reasoning(model_name):
+        litellm.register_model(
+            {
+                model_name: {
+                    "litellm_provider": model_name.split("/", 1)[0],
+                    "mode": "chat",
+                    "supports_reasoning": True,
+                }
+            }
+        )
+    return {"thinking": {"type": "enabled", "budget_tokens": budget_tokens}}
+
+
 def _log_cache_usage(usage):
     """Print cache hit / write counts when present."""
     if usage is None:
@@ -84,12 +120,18 @@ def _extract_reasoning(message):
 
 class LiteLLMModel:
     def __init__(
-        self, model_name, temperature=0.4, extra_body=None, reasoning_effort=None
+        self,
+        model_name,
+        temperature=None,
+        extra_body=None,
+        reasoning_effort=None,
+        max_tokens=16000,
     ):
         self.model_name = model_name
         self.temperature = temperature
         self.extra_body = extra_body or {}
         self.reasoning_effort = reasoning_effort
+        self.max_tokens = max_tokens
         self.last_metrics = {}
         self._prompt_logged = False
 
@@ -111,20 +153,30 @@ class LiteLLMModel:
         completion_kwargs = {
             "model": self.model_name,
             "messages": messages,
-            "temperature": self.temperature,
-            "max_tokens": 16000,
+            "max_tokens": self.max_tokens,
             "num_retries": 10,
         }
+        if self.temperature is not None:
+            completion_kwargs["temperature"] = self.temperature
         if self.extra_body:
             completion_kwargs["extra_body"] = self.extra_body
         if self.reasoning_effort:
             completion_kwargs["reasoning_effort"] = self.reasoning_effort
+        else:
+            # reasoning_effort already turns thought summaries on, and litellm
+            # rejects thinking_level and thinking_budget in the same request.
+            completion_kwargs.update(_thinking_kwargs(self.model_name, self.max_tokens))
 
         started = time.monotonic()
         response = litellm.completion(**completion_kwargs)
         duration_ms = int((time.monotonic() - started) * 1000)
 
-        message = response.choices[0].message
+        choice = response.choices[0]
+        message = choice.message
+        if not (message.content or "").strip():
+            finish_reason = getattr(choice, "finish_reason", None)
+            usage_repr = getattr(response, "usage", None)
+            print(f"[EMPTY] finish_reason={finish_reason} usage={usage_repr}")
         reasoning = _extract_reasoning(message)
         if reasoning:
             print(f"[REASONING] {reasoning}")
@@ -145,7 +197,7 @@ class LiteLLMModel:
 
 
 class RandomPlayer:
-    def __init__(self, model_name="random", temperature=0.4):
+    def __init__(self, model_name="random", temperature=None):
         self.model_name = model_name
         self.temperature = temperature
 
@@ -155,7 +207,7 @@ class RandomPlayer:
 
 
 class ManualPlayer:
-    def __init__(self, model_name="manual", temperature=0.4):
+    def __init__(self, model_name="manual", temperature=None):
         self.model_name = model_name
         self.temperature = temperature
 
@@ -164,7 +216,12 @@ class ManualPlayer:
 
 
 def get_model(
-    model_name, temperature=0.4, extra_body=None, reasoning_effort=None, effort=None
+    model_name,
+    temperature=None,
+    extra_body=None,
+    reasoning_effort=None,
+    effort=None,
+    max_tokens=16000,
 ):
     if model_name == "random":
         return RandomPlayer(model_name, temperature)
@@ -177,6 +234,7 @@ def get_model(
         temperature,
         extra_body=extra_body,
         reasoning_effort=reasoning_effort,
+        max_tokens=max_tokens,
     )
 
 

@@ -22,13 +22,18 @@ def tprint(*args, **kwargs):
     print(f"[{timestamp}]", *args, **kwargs)
 
 
-def build_extra_body(provider=None, reasoning=False):
-    """Build extra_body dict for OpenRouter options."""
+def build_extra_body(provider=None, reasoning=False, effort="high"):
+    """Build extra_body dict for OpenRouter options.
+
+    OpenRouter accepts either ``effort`` or ``max_tokens`` in the reasoning
+    block, not both, and maps effort to a token budget itself for providers
+    that only take budgets.
+    """
     body = {}
     if provider:
         body["provider"] = {"order": [provider], "allow_fallbacks": False}
     if reasoning:
-        body["reasoning"] = {"enabled": True, "max_tokens": 10000}
+        body["reasoning"] = {"effort": effort}
     return body
 
 
@@ -101,17 +106,19 @@ def test_model(args):
     is_openrouter = args.model.startswith("openrouter/")
     provider = getattr(args, "provider", None)
     reasoning = getattr(args, "reasoning", False)
-    extra_body = build_extra_body(provider, reasoning) if is_openrouter else {}
+    effort = getattr(args, "effort", "high")
+    extra_body = build_extra_body(provider, reasoning, effort) if is_openrouter else {}
     # OpenRouter enables reasoning via extra_body; for direct providers, use
     # litellm's universal ``reasoning_effort`` (maps to thinking_level on
     # Gemini 3, thinking_budget on Gemini 2.5, and native reasoning on OpenAI).
-    reasoning_effort = "high" if reasoning and not is_openrouter else None
+    reasoning_effort = effort if reasoning and not is_openrouter else None
     model = get_model(
         args.model,
         args.temperature,
         extra_body=extra_body,
         reasoning_effort=reasoning_effort,
-        effort=getattr(args, "effort", None),
+        effort=effort,
+        max_tokens=getattr(args, "max_tokens", 16000),
     )
 
     if not os.path.exists("games_archive"):

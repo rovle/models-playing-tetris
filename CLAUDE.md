@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Benchmarking multimodal LLMs' ability to play Tetris. The system screenshots a pygame Tetris board, sends it to an LLM via [litellm](https://docs.litellm.ai/), parses the model's move response, executes it in-game, and logs results. Any vision-capable model supported by litellm can be used (e.g., `anthropic/claude-opus-4-6`, `openai/gpt-4o`, `gemini/gemini-3-flash-preview`), plus `random` and `manual` players.
+Benchmarking multimodal LLMs' ability to play Tetris. The system screenshots a pygame Tetris board, sends it to an LLM via [litellm](https://docs.litellm.ai/), parses the model's move response, executes it in-game, and logs results. Any vision-capable model supported by litellm can be used (e.g., `anthropic/claude-fable-5-1`, `openai/gpt-6-astra`, `gemini/gemini-3.8-flash`), plus `random` and `manual` players.
 
 ## Setup
 
@@ -19,18 +19,21 @@ Requires `ffmpeg` on PATH for post-game video creation.
 
 ```bash
 # Run a game (model names use litellm provider/model format)
-uv run python main.py --model gemini/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --example_ids 32 33
+uv run python main.py --model gemini/gemini-3.8-flash --prompt_name minimal_v1
 
-uv run python main.py --model anthropic/claude-opus-4-6 --prompt_name complex_cot_prompt_n5_multiple_actions_v1
+uv run python main.py --model anthropic/claude-fable-5-1 --prompt_name minimal_v1
 
-# Via OpenRouter
-uv run python main.py --model openrouter/google/gemini-3-flash-preview --prompt_name complex_cot_prompt_n5_multiple_actions_v1
+# Few-shot: reasoning_few_shot_v1 expects examples with an analysis field (ids 34 to 36)
+uv run python main.py --model anthropic/claude-fable-5-1 --prompt_name reasoning_few_shot_v1 --example_ids 34 35 36
+
+# Via OpenRouter, with reasoning at the level set by --effort
+uv run python main.py --model openrouter/openai/gpt-6-astra --prompt_name minimal_v1 --reasoning --effort low
 
 # Via the local Claude Code CLI, billed to whatever account it is logged in with
-uv run python main.py --model claude-code/opus --prompt_name complex_cot_prompt_n5_multiple_actions_v1 --effort high
+uv run python main.py --model claude-code/opus --prompt_name minimal_v1 --effort high
 
 # Analyze past games
-uv run python lib/games_analysis.py --model gemini/gemini-3-flash-preview
+uv run python lib/games_analysis.py --model gemini/gemini-3.8-flash
 
 # Generate video from a past game's screenshots (N = game number, default framerate=8)
 uv run python -c "from lib.video_creation import create_video; create_video(N, framerate=4)"
@@ -53,7 +56,7 @@ A JSON-file-backed dict that both threads read/write for synchronization (`state
 
 ### Model abstraction (`model_controller/models.py`)
 
-`LiteLLMModel` wraps `litellm.completion()` with `generate_response(prompt_name, example_ids, image_path)`. Accepts any litellm model string (e.g., `anthropic/claude-opus-4-6`). `RandomPlayer` and `ManualPlayer` bypass litellm. `ClaudeCodeModel` (`claude_code_model.py`) shells out to the local `claude` CLI for `claude-code/` model names; see `docs/claude_code_backend.md`. `get_model(model_name, temperature)` factory routes to the appropriate class. `parse_response()` extracts JSON `{"action": "..."}` from model output using `json.loads()`.
+`LiteLLMModel` wraps `litellm.completion()` with `generate_response(prompt_name, example_ids, image_path)`. Accepts any litellm model string (e.g., `anthropic/claude-fable-5-1`). `RandomPlayer` and `ManualPlayer` bypass litellm. `ClaudeCodeModel` (`claude_code_model.py`) shells out to the local `claude` CLI for `claude-code/` model names; see `docs/claude_code_backend.md`. `get_model(model_name, temperature)` factory routes to the appropriate class. `parse_response()` extracts JSON `{"action": "..."}` from model output using `json.loads()`.
 
 Every backend builds its prompt through `model_controller/prompt_builder.py`, which emits provider-agnostic blocks and adapts them per backend, so runs stay comparable. Backends that do not use litellm raise `ModelCallError` (`model_controller/errors.py`) so the retry loop in `run_model.py` catches them the same way.
 
@@ -77,3 +80,10 @@ Forked from [zeroize318/tetris_ai](https://github.com/zeroize318/tetris_ai). `Ga
 - If a single action isn't `down` or `drop`, a `down` is auto-appended
 - The `augmentation` field in prompts applies image transforms before sending to the model (works for all providers)
 - `--endless` flag loops games indefinitely; without it, the process exits after one game
+- `--max_tokens` (default 16000) caps output per move. Gemini 3+ counts thinking tokens against that cap, so a model that thinks past it returns empty content and the turn fails JSON validation. Raise it for heavy thinkers
+- `--reasoning` requests thinking at the level set by `--effort` (default `high`). Without it the request carries no reasoning settings and the provider default applies, so `--effort` is ignored. OpenRouter gets `extra_body.reasoning.effort`, direct providers get litellm's `reasoning_effort`, and `claude-code/` always passes `--effort` to the CLI. `xhigh` and `max` are accepted by OpenRouter and Claude Code only
+- Gemini 3+ called through `gemini/` or `vertex_ai/` gets `includeThoughts: true` so thought summaries land in `responses/`
+- `--temperature` defaults to `None`, meaning the request carries no temperature and the provider default applies. Recent OpenAI and Gemini reasoning models reject or ignore an explicit temperature, so leave it unset for benchmarks
+- `info.json` records `temperature` (`null` means provider default), `effort`, and `reasoning` (whether `--reasoning` was passed, so whether `effort` was in effect)
+- `--prompt_name` defaults to `minimal_v1`. `reasoning_few_shot_v1` needs examples with an `analysis` field (ids 34 to 36 in `assets/examples.json`); older ids use the legacy multi-field format
+- litellm has no price entry for `gpt-6-astra`, so cost fields in `info.json` may be zero for that model
